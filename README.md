@@ -33,3 +33,21 @@ Drawbacks compared to other databases
 * https://www.digitalocean.com/community/tutorials/sqlite-vs-mysql-vs-postgresql-a-comparison-of-relational-database-management-systems
 
 
+10. Planning and tracking of tasks
+
+The project is divided into three main parts:
+* Initial planning
+* Writing code
+* Writing documentation 
+
+Initial planning includes:
+1. Brainstorming ideas for an application that is meaningful and suitable to my skill level. 
+2. Get approval for the idea
+3. What features to be included in the app
+4. What entities that need tracking to achieve the said features
+5. What are the relationships between said entities
+6. What are the API endpoints
+7. What are the CRUD operations that are appropriate for each entity
+8. What is the Database Management System to be used
+
+After the initial planning, the project is implemented in sprints. Each sprint cycle aims to resolve a user story, and it includes detailed planning, creating code, testing and documentation. 
