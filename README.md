@@ -50,4 +50,28 @@ Initial planning includes:
 7. What are the CRUD operations that are appropriate for each entity
 8. What is the Database Management System to be used
 
-After the initial planning, the project is implemented in sprints. Each sprint cycle aims to resolve a user story, and it includes detailed planning, creating code, testing and documentation. 
+
+After the initial planning, each task is executed through 3 stages writing code, testing and documentation.  
+
+Task #1: Create the skeletal structure of the application
+* Code: create a virtual environment, install all the required dependencies, initialize the application, a PostgreSQL database, and a git repository.
+* Testing: test the index route (landing page)
+* Documentation: complete R1, R2, R3 of the documentation requirements 
+
+Task #2: 'Create the clients entity, Client model'
+* Code: create the client model and ClientSchema, cli command to create and seed the table in the database. 
+* Testing: test the psql database to check if a seeded table is created
+* Documentation: first part of R4
+
+Task #3: Create API endpoints for CRUD operations on clients entity
+* Code: create the client blueprint, register it and API endpoints for CRUD operations 
+* Testing: test all the CRUD operations on clients entity
+* Documentation: first part of R5
+
+Task #4 and Task #5: same process of Task #2 and Task #3, but on 'pets' entity
+
+Task #6 and Task #7: same process of Task #2 and Task #3, but on 'staff' entity
+
+Task #8 and Task #9: same process of Task #2 and Task #3, but on 'bookings' entity
+
+Task #10 and Task #11: same process of Task #2 and Task #3, but on 'rosters' entity
