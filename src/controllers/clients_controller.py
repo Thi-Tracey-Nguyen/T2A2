@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from init import db
+from sqlalchemy.exc import IntegrityError
 from models.client import Client, ClientSchema
 from flask_jwt_extended import jwt_required
 
@@ -40,7 +41,11 @@ def create_client():
         phone = data['phone'],
         email = data['email']
     )
-    db.session.add(client)
-    db.session.commit()
-    #respond to the user 
-    return ClientSchema().dump(client), 201
+    try:
+        #add client to the database if no conflicts
+        db.session.add(client)
+        db.session.commit()
+        #respond to the user
+        return ClientSchema().dump(client), 201
+    except IntegrityError:
+        return {'error': 'Phone number already exists'}, 409 #catch IntegrityError when phone number already exists
