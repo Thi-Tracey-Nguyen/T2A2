@@ -1,6 +1,8 @@
 from flask import Blueprint
 from init import db
 from models.client import Client
+from models.type import Type
+from models.pet import Pet
 
 
 db_commands = Blueprint('db', __name__)
@@ -74,6 +76,45 @@ def seed_table():
         email = 'richard.burke@friends.com',
     )
     ]
+
+    types = [
+    Type(
+        name = 'Dog'
+    ),
+    Type(
+        name = 'Cat'
+    ),
+    Type(
+        name = 'Bird'
+    ),
+    Type(
+        name = 'Mouse'
+    ),
+    Type(
+        name = 'Duck'
+    )
+    ]
+
     db.session.add_all(clients)
+    db.session.add_all(types)
+    db.session.commit()
+
+    pets = [
+    Pet(
+        name = 'Duck',
+        type_id = 5,
+        client_id = 4,
+        size = 'M',
+        year = 2022
+    ),
+    Pet(
+        name = 'Mozzarella',
+        type_id = 1,
+        size = 'S',
+        client_id = 3,
+        year = 2019
+    )
+    ]
+    db.session.add_all(pets)
     db.session.commit()
     print('Table seeded!')
