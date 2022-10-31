@@ -1,6 +1,6 @@
 from init import db, ma 
 from marshmallow import fields
-from marshmallow.validate import And, Length, Regexp
+from marshmallow.validate import And, Length, Regexp, Email
 
 class Client(db.Model):
     __tablename__ = 'clients'
@@ -16,7 +16,7 @@ class Client(db.Model):
 class ClientSchema(ma.Schema):
     # pet = fields.List(fields.Nested('PetSchema', only = ['name', 'type', 'size']))
 
-    phone = fields.String(required = True, 
+    phone = fields.String(required = True,
     validate = And(Length(min=6, error = 'Phone number must be 6 digit long'),
     Regexp('^[0-9]+$', error = 'Phone can only contain numbers')
     ))
