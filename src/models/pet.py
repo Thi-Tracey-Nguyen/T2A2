@@ -1,3 +1,4 @@
+from sqlalchemy import UniqueConstraint
 from init import db, ma 
 from marshmallow import fields
 
@@ -13,6 +14,8 @@ class Pet(db.Model):
     size_id = db.Column(db.Integer, db.ForeignKey('sizes.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
 
+    __table_args__ = (db.UniqueConstraint('name', 'client_id'),)
+
     client = db.relationship('Client', back_populates = 'pet')
     type = db.relationship('Type', back_populates = 'pet')
     size = db.relationship('Size', back_populates = 'pet')
@@ -23,5 +26,5 @@ class PetSchema(ma.Schema):
     size = fields.Nested('SizeSchema', only = ['name'])
 
     class Meta:
-        fields = ('id', 'name', 'breed', 'client', 'type', 'size')
+        fields = ('id', 'name', 'breed', 'type_id', 'client_id', 'type_id', 'size_id', 'year', 'client', 'type', 'size')
         ordered = True
