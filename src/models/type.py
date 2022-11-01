@@ -1,4 +1,5 @@
 from init import db, ma
+from marshmallow import fields
 
 class Type(db.Model):
     __tablename__ = 'types'
@@ -9,5 +10,6 @@ class Type(db.Model):
     pet = db.relationship('Pet', back_populates = 'type')
 
 class TypeSchema(ma.Schema):
-    fields = ('id', 'name')
-    ordered = True
+    class Meta:
+        fields = ('id', 'name')
+        ordered = True

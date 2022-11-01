@@ -14,7 +14,7 @@ class Client(db.Model):
     pet = db.relationship('Pet', back_populates = 'client', cascade = 'all, delete')
 
 class ClientSchema(ma.Schema):
-    pet = fields.List(fields.Nested('PetSchema', only = ['name', 'type_id', 'size']))
+    pet = fields.List(fields.Nested('PetSchema', only = ['name', 'type', 'size']))
 
     phone = fields.String(required = True,
     validate = And(Length(min=6, error = 'Phone number must be 6 digit long'),

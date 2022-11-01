@@ -3,6 +3,7 @@ from init import db
 from models.client import Client
 from models.type import Type
 from models.pet import Pet
+from models.size import Size
 
 
 db_commands = Blueprint('db', __name__)
@@ -95,8 +96,28 @@ def seed_table():
     )
     ]
 
+    sizes = [
+    Size(
+        weight = '<6kg',
+        name = 'XS'
+    ),
+    Size(
+        weight = '6-10kg',
+        name = 'S'
+    ),
+    Size(
+        weight = '10-25kg',
+        name = 'M'
+    ),
+    Size(
+        weight = '>25kg',
+        name = 'L'
+    ),
+    ]
+
     db.session.add_all(clients)
     db.session.add_all(types)
+    db.session.add_all(sizes)
     db.session.commit()
 
     pets = [
@@ -104,13 +125,13 @@ def seed_table():
         name = 'Duck',
         type_id = 5,
         client_id = 4,
-        size = 'M',
+        size_id = 1,
         year = 2022
     ),
     Pet(
         name = 'Mozzarella',
         type_id = 1,
-        size = 'S',
+        size_id = 3,
         client_id = 3,
         year = 2019
     )

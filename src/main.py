@@ -4,6 +4,7 @@ from marshmallow.exceptions import ValidationError
 import os
 from controllers.cli_controller import db_commands
 from controllers.clients_controller import clients_bp
+from controllers.pets_controller import pets_bp
 
 def create_app():
     app = Flask(__name__)
@@ -19,6 +20,7 @@ def create_app():
 
     app.register_blueprint(db_commands)
     app.register_blueprint(clients_bp)
+    app.register_blueprint(pets_bp)
 
     @app.errorhandler(404)
     def not_found(err):
