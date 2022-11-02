@@ -1,6 +1,7 @@
 from flask import Flask
 from init import db, ma, bcrypt
 from marshmallow.exceptions import ValidationError
+from sqlalchemy.exc import IntegrityError
 import os
 from controllers.cli_controller import db_commands
 from controllers.clients_controller import clients_bp
@@ -31,9 +32,13 @@ def create_app():
     def bad_request(err):
         return {'Error': str(err)}, 400
 
-    # @app.errorhandler(KeyError)
-    # def key_error(err):
-    #     return {'Error': f'The field {err} is required'}, 400
+    @app.errorhandler(KeyError)
+    def key_error(err):
+        return {'Error': f'The field {err} is required'}, 400
+
+    @app.errorhandler(IntegrityError)
+    def integrity_error(err):
+        return {'message': 'Record already exists'}, 409
 
     @app.errorhandler(ValidationError)
     def validation_error(err):

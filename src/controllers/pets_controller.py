@@ -42,19 +42,20 @@ def create_pet():
         breed = request.json.get('breed'), 
         client_id = data['client_id'],
         year = data['year'],
-        size_id = data['size_id'], 
+        size_id = data['size_id'],
         type_id = data['type_id']
     )
-    #add pet to the database if no conflicts, and catch IntegrityError 
-    #when the combination of pet's name and client_id 
-    #already exist in the db
-    try: 
+    try:
+        #add pet to the database if no conflicts
         db.session.add(pet)
         db.session.commit()
+
         #respond to the user
-        return PetSchema().dump(pet), 201
+        return PetSchema(exclude = ['size_id', 'type_id']).dump(pet), 201
+
+    #catch IntegrityError if the same pet name already exists with the same client's number
     except IntegrityError:
-        return {"message": "The same the same pet already in the system with this client"}
+        return {'message': 'The combination of pet\'s name, client\'s id and pet type already exists'}
 
 #Route to delete a pet
 @pets_bp.route('/<int:pet_id>/', methods = ['DELETE'])
@@ -79,15 +80,20 @@ def update_pet(pet_id):
     pet = db.session.scalar(stmt)
     # check if the pet exists, if they do, update their info
     if pet:
-        #get the info from the request, if not provided, keep as it is
-        pet.name = request.json.get('name') or pet.name
-        pet.client_id = request.json.get('client_id') or pet.client_id
-        pet.breed = request.json.get('breed') or pet.breed
-        pet.year = request.json.get('year') or pet.year
-        pet.size_id = request.json.get('size_id') or pet.size_id
-        pet.type_id = request.json.get('type_id') or pet.type_id
-        db.session.commit() #commit the changes
-        return PetSchema().dump(pet)
+        try:
+            #get the info from the request, if not provided, keep as it is
+            pet.name = request.json.get('name') or pet.name
+            pet.client_id = request.json.get('client_id') or pet.client_id
+            pet.breed = request.json.get('breed') or pet.breed
+            pet.year = request.json.get('year') or pet.year
+            pet.size_id = request.json.get('size_id') or pet.size_id
+            pet.type_id = request.json.get('type_id') or pet.type_id
+            db.session.commit() #commit the changes
+            return PetSchema().dump(pet)
+        #catch IntegrityError when the updated info already exist in the database
+        except IntegrityError:
+            return {'message': 'The combination of pet\'s name, client\'s id and pet type already exists'}
+
     #if pet with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find pet with id {pet_id}'}, 404

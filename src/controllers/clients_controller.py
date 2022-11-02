@@ -45,25 +45,23 @@ def create_client():
     )
     #add user to the database if no conflicts, and 
     #catch IntegrityError if phone number already exists in databse
-    try:
-        db.session.add(user)
-        db.session.commit()
+    db.session.add(user)
+    db.session.commit()
 
-        #retrieve the new user's id with the provided phone number because it is unique
-        stmt = db.select(User).filter_by(phone = data['phone'])
-        user = db.session.scalar(stmt)
+    #retrieve the new user's id with the provided phone number because it is unique
+    stmt = db.select(User).filter_by(phone = data['phone'])
+    user = db.session.scalar(stmt)
 
-        #create a new client instance with the user_id from the new user
-        new_client = Client(user_id = user.id)
+    #create a new client instance with the user_id from the new user
+    new_client = Client(user_id = user.id)
 
-        #add the new client to the database and commit
-        db.session.add(new_client)
-        db.session.commit()
+    #add the new client to the database and commit
+    db.session.add(new_client)
+    db.session.commit()
 
-        #respond to the user
-        return ClientSchema(exclude = ['pets']).dump(new_client), 201
-    except IntegrityError:
-        return {'error': 'Phone number already exists'}, 409 
+    #respond to the user
+    return ClientSchema(exclude = ['pets']).dump(new_client), 201
+    
 
 #Route to delete a client
 @clients_bp.route('/<int:client_id>/', methods = ['DELETE'])
@@ -80,20 +78,31 @@ def delete_client(client_id):
     else:
         return {'message': f'Cannot find client with id {client_id}'}, 404
 
-#Route to update pet's info
+#Route to update client's info
 @clients_bp.route('/<int:client_id>/', methods = ['PUT', 'PATCH'])
 def update_client(client_id):
-    #get one pet whose id matches API endpoint
+    #get one client whose id matches API endpoint
     stmt = db.select(Client).filter_by(id = client_id)
-    pet = db.session.scalar(stmt)
-    # check if the pet exists, if they do, update their info
-    if pet:
-        pet.f_name = request.json.get('f_name') or pet.f_name
-        pet.l_name = request.json.get('l_name') or pet.l_name
-        pet.phone = request.json.get('phone') or pet.phone
-        pet.email = request.json.get('email') or pet.email
+    client = db.session.scalar(stmt)
+    # check if the client exists, if they do, update their info
+    if client:
+
+        #load the request into the UserSchema to use validations
+        data = UserSchema().load(request.json)
+
+        #get the user_id from client id to update corresponding fields in users table
+        user_stmt = db.select(User).filter_by(id = client.user_id)
+        user = db.session.scalar(user_stmt)
+
+        #assign user's attributes with provided values 
+        #or keep as it is if not provided
+        user.f_name = request.json.get('f_name') or user.f_name
+        user.l_name = request.json.get('l_name') or user.l_name
+        user.phone = request.json.get('phone') or user.phone
+
+        #commit the changes and response to the user
         db.session.commit()
-        return ClientSchema().dump(pet)
-    #if pet with the provided id does not exist, return an error message
+        return ClientSchema().dump(client)
+    #if client with the provided id does not exist, return an error message
     else:
-        return {'message': f'Cannot find pet with id {client_id}'}, 404
+        return {'message': f'Cannot find client with id {client_id}'}, 404
