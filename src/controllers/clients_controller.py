@@ -43,24 +43,28 @@ def create_client():
         phone = data['phone'],
         type_id = 1 #type_id for client
     )
-    #add user to the database if no conflicts, and 
-    #catch IntegrityError if phone number already exists in databse
-    db.session.add(user)
-    db.session.commit()
+    #add user to the database if no conflicts
+    try:
+        db.session.add(user)
+        db.session.commit()
 
-    #retrieve the new user's id with the provided phone number because it is unique
-    stmt = db.select(User).filter_by(phone = data['phone'])
-    user = db.session.scalar(stmt)
+        #retrieve the new user's id with the provided phone number because it is unique
+        stmt = db.select(User).filter_by(phone = data['phone'])
+        user = db.session.scalar(stmt)
 
-    #create a new client instance with the user_id from the new user
-    new_client = Client(user_id = user.id)
+        #create a new client instance with the user_id from the new user
+        new_client = Client(user_id = user.id)
 
-    #add the new client to the database and commit
-    db.session.add(new_client)
-    db.session.commit()
+        #add the new client to the database and commit
+        db.session.add(new_client)
+        db.session.commit()
 
-    #respond to the user
-    return ClientSchema(exclude = ['pets']).dump(new_client), 201
+        #respond to the user
+        return ClientSchema(exclude = ['pets']).dump(new_client), 201
+
+    #catch IntegrityError when phone number already exists
+    except IntegrityError:
+        return {'message': 'Phone number already exists'}, 409
     
 
 #Route to delete a client
@@ -96,9 +100,9 @@ def update_client(client_id):
 
         #assign user's attributes with provided values 
         #or keep as it is if not provided
-        user.f_name = request.json.get('f_name') or user.f_name
-        user.l_name = request.json.get('l_name') or user.l_name
-        user.phone = request.json.get('phone') or user.phone
+        user.f_name = data.get('f_name') or user.f_name
+        user.l_name = data.get('l_name') or user.l_name
+        user.phone = data.get('phone') or user.phone
 
         #commit the changes and response to the user
         db.session.commit()

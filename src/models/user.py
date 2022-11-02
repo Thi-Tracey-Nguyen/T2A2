@@ -19,7 +19,7 @@ class UserSchema(ma.Schema):
     pet = fields.List(fields.Nested('PetSchema', only = ['name', 'type', 'size']))
 
     phone = fields.String(required = True,
-    validate = And(Length(min=6, error = 'Phone number must be 6 digit long'),
+    validate = And(Length(min=6, max=6, error = 'Phone number must be 6 digit long'),
     Regexp('^[0-9]+$', error = 'Phone can only contain numbers')
     ))
 
