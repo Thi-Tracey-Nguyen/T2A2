@@ -1,5 +1,5 @@
 from flask import Flask
-from init import db, ma
+from init import db, ma, bcrypt
 from marshmallow.exceptions import ValidationError
 import os
 from controllers.cli_controller import db_commands
@@ -13,6 +13,7 @@ def create_app():
 
     db.init_app(app)
     ma.init_app(app)
+    bcrypt.init_app(app)
 
     @app.route('/')
     def index():

@@ -8,7 +8,7 @@ class Client(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique = True)
 
-    user = db.relationship('User', viewonly=True)
+    user = db.relationship('User', back_populates = 'client', cascade = 'all, delete')
     pets = db.relationship('Pet', back_populates = 'client')
 
 class ClientSchema(ma.Schema):
@@ -16,4 +16,5 @@ class ClientSchema(ma.Schema):
     pets = fields.List(fields.Nested('PetSchema', exclude = ['client']))
 
     class Meta:
-        fields = ('user', 'pets')
+        fields = ('id', 'user', 'pets')
+        ordered = True

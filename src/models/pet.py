@@ -21,10 +21,10 @@ class Pet(db.Model):
     size = db.relationship('Size')
 
 class PetSchema(ma.Schema):
-    client = fields.Nested('ClientSchema', only = ['f_name', 'l_name', 'phone'])
-    type = fields.Nested('TypeSchema', only = ['name'])
+    client = fields.Nested('ClientSchema', only = ['user'])
+    type = fields.Nested('PetTypeSchema', only = ['name'])
     size = fields.Nested('SizeSchema', only = ['name'])
 
     class Meta:
-        fields = ('id', 'name', 'breed', 'type_id', 'client_id', 'type_id', 'size_id', 'year', 'client', 'type', 'size')
+        fields = ('id', 'name', 'breed', 'year', 'client', 'client_id', 'type', 'size')
         ordered = True
