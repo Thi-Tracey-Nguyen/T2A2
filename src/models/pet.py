@@ -10,15 +10,15 @@ class Pet(db.Model):
     breed = db.Column(db.String(50), default = 'Unknown')
     year = db.Column(db.Integer, nullable=False)
 
-    type_id = db.Column(db.Integer, db.ForeignKey('types.id'), nullable=False)
+    type_id = db.Column(db.Integer, db.ForeignKey('pet_types.id'), nullable=False)
     size_id = db.Column(db.Integer, db.ForeignKey('sizes.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
 
     __table_args__ = (db.UniqueConstraint('name', 'client_id'),)
 
-    client = db.relationship('Client', back_populates = 'pet')
-    type = db.relationship('Type', back_populates = 'pet')
-    size = db.relationship('Size', back_populates = 'pet')
+    client = db.relationship('Client', back_populates = 'pets')
+    type = db.relationship('PetType')
+    size = db.relationship('Size')
 
 class PetSchema(ma.Schema):
     client = fields.Nested('ClientSchema', only = ['f_name', 'l_name', 'phone'])

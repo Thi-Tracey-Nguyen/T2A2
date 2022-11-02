@@ -79,7 +79,7 @@ def update_pet(pet_id):
     pet = db.session.scalar(stmt)
     # check if the pet exists, if they do, update their info
     if pet:
-        #get the info from thr request, if not provided, keep as it is
+        #get the info from the request, if not provided, keep as it is
         pet.name = request.json.get('name') or pet.name
         pet.client_id = request.json.get('client_id') or pet.client_id
         pet.breed = request.json.get('breed') or pet.breed
