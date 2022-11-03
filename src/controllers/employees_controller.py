@@ -5,6 +5,7 @@ from models.employee import Employee, EmployeeSchema
 from models.user import User, UserSchema
 from flask_jwt_extended import jwt_required
 from marshmallow import EXCLUDE
+from init import bcrypt
 
 employees_bp = Blueprint('Employee', __name__, url_prefix = '/employees')
 
@@ -118,7 +119,7 @@ def update_employee(employee_id):
         
         #load the request into the UserSchema to use validations
         #exclude unknown fileds which are in EmployeeSchema
-        user_data = UserSchema().load(request.json, unknown=EXCLUDE)
+        UserSchema().load(request.json, partial = True, unknown=EXCLUDE)
 
         #get the user_id from employee id to update corresponding fields in users table
         user_stmt = db.select(User).filter_by(id = employee.user_id)
@@ -130,11 +131,27 @@ def update_employee(employee_id):
         user.l_name = request.json.get('l_name') or user.l_name
         user.phone = request.json.get('phone') or user.phone
         
-        #to update password, load provided password into ValidatingSchema
-        #to validate lenght and content
-        # EmployeeSchema.ValidatingSchema().load({'password': request.json.get('password')})
-        employee_data = EmployeeSchema().load(request.json, unknown = EXCLUDE)
-        employee.password = request.json.get('password') or employee.password
+        #to update password, load request into EmployeeSchema to apply validations
+        EmployeeSchema().load(request.json, partial = True, unknown = EXCLUDE)
+
+        #if no exceptions are raised, checks if 'password' was provided in the request
+        #because bcrypt will throw an error if not given
+        if request.json.get('password'):
+            employee.password = bcrypt.generate_password_hash(request.json.get('password')).decode('utf8')
+        
+        #if password was not provided, keep as it is
+        else:
+            employee.password = employee.password
+
+        #if is_admin is provided, update it
+        #these steps are used because request.json is a string while we want boolean
+        if request.json.get('is_admin').lower() == 'true':
+            employee.is_admin = True
+        elif request.json.get('is_admin').lower() == 'false':
+            employee.is_admin = False
+        #if is_admin is not provided or invalid, keep as it is
+        else:
+            employee.is_admin = employee.is_admin
 
         #commit the changes and response to the user
         db.session.commit()
