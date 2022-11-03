@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from models.employee import Employee, EmployeeSchema
 from models.user import User, UserSchema
 from flask_jwt_extended import jwt_required
-
+from marshmallow import EXCLUDE
 
 employees_bp = Blueprint('Employee', __name__, url_prefix = '/employees')
 
@@ -115,23 +115,30 @@ def update_employee(employee_id):
     employee = db.session.scalar(stmt)
     # check if the employee exists, if they do, update their info
     if employee:
-
+        
         #load the request into the UserSchema to use validations
-        data = UserSchema().load(request.json)
+        #exclude unknown fileds which are in EmployeeSchema
+        user_data = UserSchema().load(request.json, unknown=EXCLUDE)
 
         #get the user_id from employee id to update corresponding fields in users table
         user_stmt = db.select(User).filter_by(id = employee.user_id)
         user = db.session.scalar(user_stmt)
 
-        #assign user's attributes with provided values 
+        #f_name, l_name and phone are in the users table
         #or keep as it is if not provided
-        user.f_name = data.get('f_name') or user.f_name
-        user.l_name = data.get('l_name') or user.l_name
-        user.phone = data.get('phone') or user.phone
+        user.f_name = request.json.get('f_name') or user.f_name
+        user.l_name = request.json.get('l_name') or user.l_name
+        user.phone = request.json.get('phone') or user.phone
+        
+        #to update password, load provided password into ValidatingSchema
+        #to validate lenght and content
+        # EmployeeSchema.ValidatingSchema().load({'password': request.json.get('password')})
+        employee_data = EmployeeSchema().load(request.json, unknown = EXCLUDE)
+        employee.password = request.json.get('password') or employee.password
 
         #commit the changes and response to the user
         db.session.commit()
-        return EmployeeSchema().dump(employee)
+        return EmployeeSchema(exclude=['password']).dump(employee)
     #if employee with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find employee with id {employee_id}'}, 404
