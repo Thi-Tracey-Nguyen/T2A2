@@ -37,7 +37,7 @@ def get_one_user_by_phone(phone):
     # check if the user exists, if they do, return the UserSchema
     if user:
         return UserSchema(exclude = ['client', 'staff']).dump(user)
-    #if user with the provided id does not exist, return an error message
+    #if user with the provided phone number does not exist, return an error message
     else:
         return {'message': 'Cannot find user with the associated phone number'}, 404
 

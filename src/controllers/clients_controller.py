@@ -41,10 +41,10 @@ def get_one_client_by_phone(phone):
     client_stmt = db.select(Client).filter_by(user_id = user.id)
     client = db.session.scalar(client_stmt)
 
-    # check if the user exists, if they do, return the ClientSchema
+    # check if the client exists, if they do, return the ClientSchema
     if client:
         return ClientSchema().dump(client)
-    #if user with the provided id does not exist, return an error message
+    #if client with the provided phone number does not exist, return an error message
     else:
         return {'message': 'Cannot find client associated with the phone number'}, 404
 

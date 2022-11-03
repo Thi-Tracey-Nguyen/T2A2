@@ -13,7 +13,7 @@ class User(db.Model):
 
     type = db.relationship('UserType')
     client = db.relationship('Client', back_populates = 'user', cascade = 'all, delete')
-    staff = db.relationship('Staff')
+    employee = db.relationship('Employee', back_populates = 'user', cascade = 'all, delete')
 
 class UserSchema(ma.Schema):
     pet = fields.List(fields.Nested('PetSchema', only = ['name', 'type', 'size']))
@@ -24,5 +24,5 @@ class UserSchema(ma.Schema):
     ))
 
     class Meta:
-        fields = ('id', 'f_name', 'l_name', 'phone', 'email', 'pet', 'staff', 'client')
+        fields = ('id', 'f_name', 'l_name', 'phone', 'email', 'pet', 'employee', 'client')
         ordered = True

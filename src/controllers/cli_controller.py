@@ -2,7 +2,7 @@ from flask import Blueprint
 from init import db
 from models.user import User
 from models.client import Client
-from models.staff import Staff
+from models.employee import Employee
 from models.pet_type import PetType
 from models.pet import Pet
 from models.size import Size
@@ -20,7 +20,7 @@ def generate_record():
             new_record = Client(user_id = record.id)
         else:
             email = record.f_name + '.' + record.l_name + '@dog_spa.com'
-            new_record = Staff(user_id = record.id, email = email)
+            new_record = Employee(user_id = record.id, email = email)
         db.session.add(new_record)
         db.session.commit()
 
@@ -43,7 +43,7 @@ def seed_table():
         name = 'Client'
     ),
     UserType(
-        name = 'Staff'
+        name = 'Employee'
     )
     ]
 

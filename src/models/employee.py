@@ -2,8 +2,8 @@ from init import db, ma, bcrypt
 from marshmallow import fields
 
 
-class Staff(db.Model):
-    __tablename__ = 'staff'
+class Employee(db.Model):
+    __tablename__ = 'employees'
 
     id = db.Column(db.Integer, primary_key = True)
 
@@ -14,10 +14,10 @@ class Staff(db.Model):
 
     user = db.relationship('User', viewonly=True)
 
-class StaffSchema(ma.Schema):
-    user = fields.Nested('UserSchema', exclude = ['staff', 'client'])
+class EmployeeSchema(ma.Schema):
+    user = fields.Nested('UserSchema', exclude = ['employee', 'client'])
 
     class Meta:
-        fields = ('user', 'email', 'password', 'is_admin')
+        fields = ('id', 'user', 'email', 'is_admin')
         ordered = True
     
