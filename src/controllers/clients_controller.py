@@ -29,6 +29,25 @@ def get_one_client(client_id):
     else:
         return {'message': f'Cannot find client with id {client_id}'}, 404
 
+#Route to get one client's info by unique phone number
+@clients_bp.route('/phone/<phone>/')
+def get_one_client_by_phone(phone):
+    #has to go through users table because it is where phone number is stored
+    #get one user whose phone number matches API endpoint
+    stmt = db.select(User).filter_by(phone = phone)
+    user = db.session.scalar(stmt)
+
+    #retrieve user_id from the user and look it up in the clients table
+    client_stmt = db.select(Client).filter_by(user_id = user.id)
+    client = db.session.scalar(client_stmt)
+
+    # check if the user exists, if they do, return the ClientSchema
+    if client:
+        return ClientSchema().dump(client)
+    #if user with the provided id does not exist, return an error message
+    else:
+        return {'message': 'Cannot find client associated with the phone number'}, 404
+
 
 #Route to create new client
 @clients_bp.route('/', methods = ['POST'])
@@ -98,15 +117,21 @@ def update_client(client_id):
         user_stmt = db.select(User).filter_by(id = client.user_id)
         user = db.session.scalar(user_stmt)
 
-        #assign user's attributes with provided values 
-        #or keep as it is if not provided
-        user.f_name = data.get('f_name') or user.f_name
-        user.l_name = data.get('l_name') or user.l_name
-        user.phone = data.get('phone') or user.phone
+        #update client's info if no confilcts (duplicate phone numbers)
+        try:
+            #assign user's attributes with provided values 
+            #or keep as it is if not provided
+            user.f_name = data.get('f_name') or user.f_name
+            user.l_name = data.get('l_name') or user.l_name
+            user.phone = data.get('phone') or user.phone
 
-        #commit the changes and response to the user
-        db.session.commit()
-        return ClientSchema().dump(client)
+            #commit the changes and response to the user
+            db.session.commit()
+            return ClientSchema().dump(client)
+        
+        #catch IntegrityError when updated phone number already exists
+        except IntegrityError:
+            return {'message': 'Phone number already exists'}
     #if client with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find client with id {client_id}'}, 404

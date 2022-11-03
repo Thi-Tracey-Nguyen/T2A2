@@ -4,6 +4,7 @@ from marshmallow.exceptions import ValidationError
 from sqlalchemy.exc import IntegrityError
 import os
 from controllers.cli_controller import db_commands
+from controllers.users_controller import users_bp
 from controllers.clients_controller import clients_bp
 from controllers.pets_controller import pets_bp
 
@@ -21,6 +22,7 @@ def create_app():
         return ('Welcome to Nice and Dandy Animal Spa')
 
     app.register_blueprint(db_commands)
+    app.register_blueprint(users_bp)
     app.register_blueprint(clients_bp)
     app.register_blueprint(pets_bp)
 
