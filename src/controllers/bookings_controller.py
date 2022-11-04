@@ -13,11 +13,11 @@ bookings_bp = Blueprint('Bookings', __name__, url_prefix = '/bookings')
 @bookings_bp.route('/')
 def get_all_bookings():
     #get all records of the Booking model
-    stmt = db.select(Booking)
+    stmt = db.select(Booking).order_by(Booking.date)
     bookings = db.session.scalars(stmt)
     return BookingSchema(many=True).dump(bookings)
 
-#Route to get one booking's info
+#Route to get one booking by id
 @bookings_bp.route('/<int:booking_id>/')
 def get_one_booking(booking_id):
     #get one booking whose id matches API endpoint
@@ -105,6 +105,7 @@ def update_booking(booking_id):
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
+    
     # check if the booking exists, if it does, update its info
     if booking:
         try:

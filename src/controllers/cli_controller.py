@@ -228,7 +228,7 @@ def seed_table():
     Pet(
         name = 'Snoopy',
         type_id = 1,
-        breed = 'Beagel',
+        breed = 'Beagle',
         size_id = 3,
         client_id = 6,
         year = 2018
@@ -291,6 +291,20 @@ def seed_table():
         employee_id = 2,
         date = '2022-12-18',
         time = '13:00'
+    ),
+    Booking(
+        pet_id = 3,
+        service_id = 3,
+        employee_id = 3,
+        date = '2022-12-21',
+        time = '09:00'
+    ),
+    Booking(
+        pet_id = 4,
+        service_id = 1,
+        employee_id = 4,
+        date = '2022-12-21',
+        time = '09:00'
     )
     ]
 
