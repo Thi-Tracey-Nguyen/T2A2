@@ -30,7 +30,6 @@ def get_one_booking(booking_id):
     else:
         return {'message': f'Cannot find booking with id {booking_id}'}, 404
 
-
 #Route to create new booking
 @bookings_bp.route('/', methods = ['POST'])
 def create_booking():
@@ -47,8 +46,6 @@ def create_booking():
 
     #create a new booking instance from the provided data
     #if the pet and employee exist
-    #status is optional so use request.json.get
-    #to avoid crashing the program
     if pet and employee:
         booking = Booking(
             pet_id = data['pet_id'],
@@ -56,27 +53,23 @@ def create_booking():
             date = data['date'],
             time = data['time'],
             service_id = data['service_id'],
-            status = request.json.get('status')
+            status = request.json.get('status') #optional field -> use .get()
         )
+        try:
+            #add the booking and commit if no conflicts
+            db.session.add(booking)
+            db.session.commit()
+            return BookingSchema().dump(booking)
 
-        db.session.add(booking)
-        db.session.commit()
-        return BookingSchema().dump(booking)
+        #catch IntegrityError if the combination of
+        #pet_id, date and time already exists
+        except IntegrityError:
+            return {'message':
+            'The combination of pet\'s id, date and time already exists'}
     elif not pet:
         return {'message': 'Pet\'s id does not exist'}, 404
     elif not employee:
         return {'message': 'Employee\'s id does not exist'}, 404
-    # try:
-    #     #add booking to the database if no conflicts
-    #     db.session.add(booking)
-    #     db.session.commit()
-
-    #     #respond to the user
-    #     return BookingSchema(exclude = ['size_id', 'type_id']).dump(booking), 201
-
-    # #catch IntegrityError if the same booking name already exists with the same client's number
-    # except IntegrityError:
-    #     return {'message': 'The combination of booking\'s name, client\'s id and booking type already exists'}
 
 #Route to delete a booking
 @bookings_bp.route('/<int:booking_id>/', methods = ['DELETE'])
@@ -93,28 +86,30 @@ def delete_booking(booking_id):
     else:
         return {'message': f'Cannot find booking with id {booking_id}'}, 404
 
-# #Route to update booking's info
-# @bookings_bp.route('/<int:booking_id>/', methods = ['PUT', 'PATCH'])
-# def update_booking(booking_id):
-#     #get one booking whose id matches API endpoint
-#     stmt = db.select(Booking).filter_by(id = booking_id)
-#     booking = db.session.scalar(stmt)
-#     # check if the booking exists, if they do, update their info
-#     if booking:
-#         try:
-#             #get the info from the request, if not provided, keep as it is
-#             booking.name = request.json.get('name') or booking.name
-#             booking.client_id = request.json.get('client_id') or booking.client_id
-#             booking.breed = request.json.get('breed') or booking.breed
-#             booking.year = request.json.get('year') or booking.year
-#             booking.size_id = request.json.get('size_id') or booking.size_id
-#             booking.type_id = request.json.get('type_id') or booking.type_id
-#             db.session.commit() #commit the changes
-#             return BookingSchema().dump(booking)
-#         #catch IntegrityError when the updated info already exist in the database
-#         except IntegrityError:
-#             return {'message': 'The combination of booking\'s name, client\'s id and booking type already exists'}
+#Route to update booking's info
+@bookings_bp.route('/<int:booking_id>/', methods = ['PUT', 'PATCH'])
+def update_booking(booking_id):
+    #get one booking whose id matches API endpoint
+    stmt = db.select(Booking).filter_by(id = booking_id)
+    booking = db.session.scalar(stmt)
+    # check if the booking exists, if it does, update its info
+    if booking:
+        try:
+            #load the request into BookingSchema to apply validations
+            data = BookingSchema().load(request.json)
+            #get the info from the request, if not provided, keep as it is
+            booking.service_id = data.get('service_id') or booking.service_id
+            booking.pet_id = data.get('pet_id') or booking.pet_id
+            booking.employee_id = data.get('employee_id') or booking.employee_id
+            booking.date = data.get('date') or booking.date
+            booking.time = data.get('time') or booking.time
+            booking.status = data.get('status') or booking.status
+            db.session.commit() #commit the changes
+            return BookingSchema().dump(booking)
+        #catch IntegrityError when the updated info already exist in the database
+        except IntegrityError:
+            return {'message': 'The combination of pet\'s id, date and time already exists'}
 
-#     #if booking with the provided id does not exist, return an error message
-#     else:
-#         return {'message': f'Cannot find booking with id {booking_id}'}, 404
+    #if booking with the provided id does not exist, return an error message
+    else:
+        return {'message': f'Cannot find booking with id {booking_id}'}, 404

@@ -1,6 +1,9 @@
 from init import db, ma
 from datetime import datetime
 from marshmallow import fields
+from marshmallow.validate import OneOf
+
+VALID_STATUSES = ['Pending', 'In Progress', 'Completed']
 
 class Booking(db.Model):
     __tablename__ = 'bookings'
@@ -13,10 +16,10 @@ class Booking(db.Model):
 
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.Time, nullable=False)
-    status = db.Column(db.String, default = 'Pending', nullable=False)
+    status = db.Column(db.String, default = VALID_STATUSES[0], nullable=False)
     date_created = db.Column(db.Date, default = datetime.now(), nullable=False)
    
-    
+    __table_args__ = (db.UniqueConstraint('pet_id', 'date', 'time'),)
 
     pet = db.relationship('Pet', back_populates = 'bookings')
     employee = db.relationship('Employee')
@@ -26,7 +29,9 @@ class BookingSchema(ma.Schema):
     pet = fields.Nested('PetSchema', exclude = ['bookings'])
     service = fields.Nested('ServiceSchema', exclude = ['id', 'bookings'])
     employee = fields.Nested('EmployeeSchema', only = ['user'])
+    status = fields.String(validate = OneOf(VALID_STATUSES))
 
     class Meta:
-        fields = ('id', 'service', 'date', 'time', 'pet', 'employee', 'date_created')
+        fields = ('id', 'status', 'service', 'date', 'time',
+        'pet', 'employee', 'date_created')
         ordered = True
