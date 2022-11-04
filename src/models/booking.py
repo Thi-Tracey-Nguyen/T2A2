@@ -3,7 +3,7 @@ from datetime import datetime
 from marshmallow import fields
 from marshmallow.validate import OneOf
 
-VALID_STATUSES = ['Pending', 'In Progress', 'Completed']
+VALID_STATUSES = ['Pending', 'In-progress', 'Completed']
 
 class Booking(db.Model):
     __tablename__ = 'bookings'

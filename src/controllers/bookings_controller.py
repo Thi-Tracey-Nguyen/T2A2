@@ -30,6 +30,19 @@ def get_one_booking(booking_id):
     else:
         return {'message': f'Cannot find booking with id {booking_id}'}, 404
 
+#Route to get bookings by status
+@bookings_bp.route('/<status>/')
+def get_booking_by_status(status):
+    #get all bookings whose status matches API endpoint
+    stmt = db.select(Booking).filter_by(status=status.capitalize())
+    bookings = db.session.scalars(stmt)
+
+    # respond to the user
+    return BookingSchema(many=True).dump(bookings)
+    # #if booking with the provided id does not exist, return an error message
+    # else:
+    #     return {'message': f'Cannot find booking with id {booking_id}'}, 404
+
 #Route to create new booking
 @bookings_bp.route('/', methods = ['POST'])
 def create_booking():
