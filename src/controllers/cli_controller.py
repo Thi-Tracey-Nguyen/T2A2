@@ -1,3 +1,4 @@
+from datetime import date
 from flask import Blueprint
 from init import db
 from models.user import User
@@ -8,6 +9,8 @@ from models.pet import Pet
 from models.size import Size
 from models.user_type import UserType
 from models.user import User
+from models.service import Service
+from models.booking import Booking
 
 
 db_commands = Blueprint('db', __name__)
@@ -56,90 +59,106 @@ def seed_table():
         f_name = 'Rachel',
         l_name = 'Green',
         phone = '300573',
+        date_created = date.today(),
         type_id = 1
+        
     ),
     User(
         f_name = 'Phoebe',
         l_name = 'Buffay',
         phone = '779149',
+        date_created = date.today(),
         type_id = 1
     ),
     User(
         f_name = 'Joey',
         l_name = 'Tribbiani',
         phone = '271746',
+        date_created = date.today(),
         type_id = 1
     ),
     User(
         f_name = 'Chandler',
         l_name = 'Bing',
         phone = '871413',
+        date_created = date.today(),
         type_id = 1
     ),
     User(
         f_name = 'Ross',
         l_name = 'Geller',
         phone = '702162',
+        date_created = date.today(),
         type_id = 1
     ),
     User(
         f_name = 'Gunther',
         l_name = 'Adkins',
         phone = '927623',
+        date_created = date.today(),
         type_id = 1
     ),
     User(
         f_name = 'Carol',
         l_name = 'Frye',
         phone = '449866',
+        date_created = date.today(),
         type_id = 1,
     ),
     User(
         f_name = 'Estelle',
         l_name = 'Leonard',
         phone = '184288',
+        date_created = date.today(),
         type_id = 1
     ),
     User(
         f_name = 'Richard',
         l_name = 'Burke',
         phone = '129049',
+        date_created = date.today(),
         type_id = 1
     ),
     User(
         f_name = 'Dwight',
         l_name = 'Schrute',
         phone = '975150',
+        date_created = date.today(),
         type_id = 2
     ),
     User(
         f_name = 'Michael',
         l_name = 'Scott',
         phone = '657403',
+        date_created = date.today(),
         type_id = 2
     ),
     User(
         f_name = 'Jim',
         l_name = 'Halpert',
         phone = '349082',
+        date_created = date.today(),
         type_id = 2
     ),
     User(
         f_name = 'Cathy',
         l_name = 'Simms',
         phone = '754022',
+        date_created = date.today(),
         type_id = 2
     ),
     User(
         f_name = 'Pam',
         l_name = 'Beesly',
         phone = '279531',
+        date_created = date.today(),
         type_id = 2
     ),
     User(
         f_name = 'Angela',
         l_name = 'Martin',
         phone = '558709',
+        date_created = date.today(),
         type_id = 2
     ),
     ]
@@ -192,7 +211,7 @@ def seed_table():
 
     pets = [
     Pet(
-        name = 'Duck',
+        name = 'Donald',
         type_id = 5,
         client_id = 4,
         size_id = 1,
@@ -201,11 +220,80 @@ def seed_table():
     Pet(
         name = 'Mozzarella',
         type_id = 1,
+        breed = 'Cocker Spaniel',
         size_id = 3,
         client_id = 3,
         year = 2019
+    ),
+    Pet(
+        name = 'Snoopy',
+        type_id = 1,
+        breed = 'Beagel',
+        size_id = 3,
+        client_id = 6,
+        year = 2018
+    ),
+    Pet(
+        name = 'Grumpy',
+        type_id = 2,
+        breed = 'Short-haired',
+        size_id = 2,
+        client_id = 4,
+        year = 2020
+    ),
+    Pet(
+        name = 'Garfield',
+        type_id = 2,
+        breed = 'Short-haired',
+        size_id = 2,
+        client_id = 5,
+        year = 2020
     )
     ]
+
+    services = [
+    Service(
+        name = 'Full Groom',
+        duration = 2,
+        price = 150.00
+    ),
+    Service(
+        name = 'Freshen Up',
+        duration = 1,
+        price = 80.00
+    ),
+    Service(
+        name = 'Tidy Up',
+        duration = 1.5,
+        price = 100.00
+    ),
+    Service(
+        name = 'Nails Only',
+        duration = 0.5,
+        price = 30.00
+    )]
+
     db.session.add_all(pets)
+    db.session.add_all(services)
+    db.session.commit()
+
+    bookings = [
+    Booking(
+        pet_id = 1,
+        employee_id = 1,
+        service_id = 1,
+        date = '2022-12-11',
+        time = '10:00'
+    ),
+    Booking(
+        pet_id = 2,
+        service_id = 2,
+        employee_id = 2,
+        date = '2022-12-18',
+        time = '13:00'
+    )
+    ]
+
+    db.session.add_all(bookings)
     db.session.commit()
     print('Table seeded!')

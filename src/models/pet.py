@@ -16,14 +16,16 @@ class Pet(db.Model):
     __table_args__ = (db.UniqueConstraint('name', 'client_id', 'type_id'),)
 
     client = db.relationship('Client', back_populates = 'pets')
+    bookings = db.relationship('Booking', back_populates = 'pet', cascade = 'all, delete')
     type = db.relationship('PetType')
     size = db.relationship('Size')
 
 class PetSchema(ma.Schema):
-    client = fields.Nested('ClientSchema', only = ['user'])
+    client = fields.Nested('ClientSchema', only = ['user', 'id'])
     type = fields.Nested('PetTypeSchema', only = ['name'])
     size = fields.Nested('SizeSchema', only = ['name'])
+    bookings = fields.List(fields.Nested('BookingSchema', exclude = ['pet']))
 
     class Meta:
-        fields = ('id', 'name', 'breed', 'year', 'client', 'client_id', 'type', 'size', 'size_id', 'type_id')
+        fields = ('id', 'name', 'breed', 'year', 'type', 'size', 'client', 'bookings')
         ordered = True

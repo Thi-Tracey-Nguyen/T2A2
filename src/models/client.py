@@ -12,7 +12,7 @@ class Client(db.Model):
     pets = db.relationship('Pet', back_populates = 'client')
 
 class ClientSchema(ma.Schema):
-    user = fields.Nested('UserSchema', exclude = ['client', 'staff'])
+    user = fields.Nested('UserSchema', exclude = ['client', 'employee', 'id'])
     pets = fields.List(fields.Nested('PetSchema', exclude = ['client']))
 
     class Meta:

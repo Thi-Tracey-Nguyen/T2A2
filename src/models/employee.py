@@ -14,10 +14,10 @@ class Employee(db.Model):
     is_admin = db.Column(db.Boolean, default = False)
 
     user = db.relationship('User', viewonly=True)
-
+    bookings = db.relationship('Booking', back_populates = 'employee')
 
 class EmployeeSchema(ma.Schema):
-    user = fields.Nested('UserSchema', exclude = ['employee', 'client'])
+    user = fields.Nested('UserSchema', exclude = ['employee', 'client', 'id'])
 
     @validates('password')
     def validate_password(self, password):
@@ -27,6 +27,6 @@ class EmployeeSchema(ma.Schema):
             raise ValidationError('Password must be at least 6 character long')
 
     class Meta:
-        fields = ('id', 'user', 'password', 'email', 'is_admin')
+        fields = ('id', 'user', 'password', 'email', 'is_admin', 'bookings')
         ordered = True
     
