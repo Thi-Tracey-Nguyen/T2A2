@@ -1,7 +1,7 @@
 from flask import Flask
 from init import db, ma, bcrypt
 from marshmallow.exceptions import ValidationError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, DataError
 import os
 from controllers.cli_controller import db_commands
 from controllers.users_controller import users_bp
@@ -9,6 +9,7 @@ from controllers.clients_controller import clients_bp
 from controllers.pets_controller import pets_bp
 from controllers.employees_controller import employees_bp
 from controllers.bookings_controller import bookings_bp
+from controllers.rosters_controller import rosters_bp
 
 def create_app():
     app = Flask(__name__)
@@ -29,6 +30,7 @@ def create_app():
     app.register_blueprint(pets_bp)
     app.register_blueprint(employees_bp)
     app.register_blueprint(bookings_bp)
+    app.register_blueprint(rosters_bp)
 
     @app.errorhandler(404)
     def not_found(err):
@@ -49,6 +51,10 @@ def create_app():
     @app.errorhandler(ValidationError)
     def validation_error(err):
         return {'message': err.messages}, 400
+
+    @app.errorhandler(DataError)
+    def data_error(err):
+        return {'message': 'Input data is invalid'}, 400
 
     return app
 

@@ -32,9 +32,10 @@ class BookingSchema(ma.Schema):
     employee = fields.Nested('EmployeeSchema', only = ['user'])
     status = fields.String(validate = OneOf(VALID_STATUSES))
 
+    #validate booking date is in the future
     @validates('date')
     def validate_date(self, date):
-        #convert boking date to python date object
+        #convert booking date to python date object
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         
         #raise ValidationError if booking date already passed
@@ -42,6 +43,20 @@ class BookingSchema(ma.Schema):
         if date_obj < dt.today():
             raise ValidationError('Booking date must be in the future')
 
+    #validate booking time is within opening hours
+    @validates('time')
+    def validate_date(self, time):
+        #convert booking time, open time and close time to python time object
+        time_obj = datetime.strptime(time, '%H:%M').time()
+        open = datetime.strptime('10:00', '%H:%M').time()
+        close = datetime.strptime('20:00', '%H:%M').time()
+        
+        #raise ValidationError if booking time is outside opening hours
+        if time_obj < open or time_obj > close:
+            raise ValidationError('Booking must be from 10am to 8pm')
+
+    #handles booking made for the same date
+    #have to use validate_schema because there are 2 arguments (date & time)
     @validates_schema
     def validate_time(self, data, **kwargs):
         #convert booking date and time to python date and time object
@@ -54,16 +69,6 @@ class BookingSchema(ma.Schema):
             if time_obj < datetime.now().time():
                 raise ValidationError('Booking time must be in the future')
 
-    @validates('time')
-    def validate_date(self, time):
-        #convert booking time, open time and close time to python time object
-        time_obj = datetime.strptime(time, '%H:%M').time()
-        open = datetime.strptime('10:00', '%H:%M').time()
-        close = datetime.strptime('20:00', '%H:%M').time()
-        
-        #raise ValidationError if booking time is outside opening hours
-        if time_obj < open or time_obj > close:
-            raise ValidationError('Booking must be from 10am to 8pm')
 
     class Meta:
         fields = ('id', 'status', 'service', 'date', 'time',

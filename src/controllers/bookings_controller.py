@@ -39,10 +39,7 @@ def get_booking_by_status(status):
 
     # respond to the user
     return BookingSchema(many=True).dump(bookings)
-    # #if booking with the provided id does not exist, return an error message
-    # else:
-    #     return {'message': f'Cannot find booking with id {booking_id}'}, 404
-
+    
 #Route to create new booking
 @bookings_bp.route('/', methods = ['POST'])
 def create_booking():
@@ -79,8 +76,12 @@ def create_booking():
         except IntegrityError:
             return {'message':
             'The combination of pet\'s id, date and time already exists'}
+
+    #respond to the user if pet_id does not exist
     elif not pet:
         return {'message': 'Pet\'s id does not exist'}, 404
+
+    #respond to the user if employee_id does not exist
     elif not employee:
         return {'message': 'Employee\'s id does not exist'}, 404
 
