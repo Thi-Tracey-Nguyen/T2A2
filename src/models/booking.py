@@ -63,9 +63,8 @@ class BookingSchema(ma.Schema):
         
         #raise ValidationError if booking time is outside opening hours
         if time_obj < open or time_obj > close:
-            raise ValidationError('Booking time outside opening hours')
+            raise ValidationError('Booking must be from 10am to 8pm')
 
-    
     class Meta:
         fields = ('id', 'status', 'service', 'date', 'time',
         'pet', 'employee', 'date_created')

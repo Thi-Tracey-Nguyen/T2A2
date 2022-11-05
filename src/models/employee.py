@@ -1,7 +1,9 @@
 from init import db, ma, bcrypt
 from marshmallow import fields, validates
-from marshmallow.validate import And, Length
+from marshmallow.validate import And, Length, OneOf
 from marshmallow.exceptions import ValidationError
+
+VALID_ADMIN_STATUSES = ('True', 'False')
 
 class Employee(db.Model):
     __tablename__ = 'employees'
@@ -18,7 +20,9 @@ class Employee(db.Model):
 
 class EmployeeSchema(ma.Schema):
     user = fields.Nested('UserSchema', exclude = ['employee', 'client', 'id'])
-
+    bookings = fields.List(fields.Nested('BookingSchema', exclude = ['employee']))
+    is_admin = fields.String(validate = OneOf(VALID_ADMIN_STATUSES))
+    
     @validates('password')
     def validate_password(self, password):
         if not any(char.isdigit() for char in password):
