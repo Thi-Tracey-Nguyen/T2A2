@@ -8,9 +8,8 @@ VALID_ADMIN_STATUSES = ('True', 'False')
 class Employee(db.Model):
     __tablename__ = 'employees'
 
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key = True)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique = True)
     email = db.Column(db.String(50), unique = True, nullable = False)
     password = db.Column(db.String, default = bcrypt.generate_password_hash('user123').decode('utf8'))
     is_admin = db.Column(db.Boolean, default = False)

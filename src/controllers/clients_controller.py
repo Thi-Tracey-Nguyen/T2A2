@@ -37,8 +37,8 @@ def get_one_client_by_phone(phone):
     stmt = db.select(User).filter_by(phone = phone)
     user = db.session.scalar(stmt)
 
-    #retrieve user_id from the user and look it up in the clients table
-    client_stmt = db.select(Client).filter_by(user_id = user.id)
+    #retrieve id from the user and look it up in the clients table
+    client_stmt = db.select(Client).filter_by(id = user.id)
     client = db.session.scalar(client_stmt)
 
     # check if the client exists, if they do, return the ClientSchema
@@ -71,8 +71,8 @@ def create_client():
         stmt = db.select(User).filter_by(phone = data['phone'])
         user = db.session.scalar(stmt)
 
-        #create a new client instance with the user_id from the new user
-        new_client = Client(user_id = user.id)
+        #create a new client instance with the user.id from the new user
+        new_client = Client(id = user.id)
 
         #add the new client to the database and commit
         db.session.add(new_client)
@@ -113,8 +113,8 @@ def update_client(client_id):
         #load the request into the UserSchema to use validations
         data = UserSchema().load(request.json)
 
-        #get the user_id from client id to update corresponding fields in users table
-        user_stmt = db.select(User).filter_by(id = client.user_id)
+        #get the id from clients table to update corresponding fields in users table
+        user_stmt = db.select(User).filter_by(id = client.id)
         user = db.session.scalar(user_stmt)
 
         #update client's info if no confilcts (duplicate phone numbers)

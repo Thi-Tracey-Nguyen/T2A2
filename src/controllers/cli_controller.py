@@ -20,10 +20,10 @@ def generate_record():
     records = db.session.scalars(stmt)
     for record in records:
         if record.type_id == 1:
-            new_record = Client(user_id = record.id)
+            new_record = Client(id = record.id)
         else:
-            email = record.f_name + '.' + record.l_name + '@dog_spa.com'
-            new_record = Employee(user_id = record.id, email = email)
+            email = record.f_name.lower() + '.' + record.l_name.lower() + '@dog_spa.com'
+            new_record = Employee(id = record.id, email = email)
         db.session.add(new_record)
         db.session.commit()
 
@@ -280,7 +280,7 @@ def seed_table():
     bookings = [
     Booking(
         pet_id = 1,
-        employee_id = 1,
+        employee_id = 10,
         service_id = 1,
         date = '2022-12-11',
         time = '10:00'
@@ -288,21 +288,21 @@ def seed_table():
     Booking(
         pet_id = 2,
         service_id = 2,
-        employee_id = 2,
+        employee_id = 12,
         date = '2022-12-18',
         time = '13:00'
     ),
     Booking(
         pet_id = 3,
         service_id = 3,
-        employee_id = 3,
+        employee_id = 11,
         date = '2022-12-21',
         time = '09:00'
     ),
     Booking(
         pet_id = 4,
         service_id = 1,
-        employee_id = 4,
+        employee_id = 13,
         date = '2022-12-21',
         time = '09:00'
     )

@@ -40,8 +40,8 @@ def get_one_employee_by_phone(phone):
 
     #checks if the user with the phone number exists
     if user:
-        #retrieve user_id from the user and look it up in the employee table
-        employee_stmt = db.select(Employee).filter_by(user_id = user.id)
+        #retrieve id from the user and look it up in the employee table
+        employee_stmt = db.select(Employee).filter_by(id = user.id)
         employee = db.session.scalar(employee_stmt)
 
         # check if the employee exists, if they do, return the ClientSchema
@@ -78,8 +78,8 @@ def create_employee():
         stmt = db.select(User).filter_by(phone = data['phone'])
         user = db.session.scalar(stmt)
 
-        #create a new employee instance with the user_id from the new user
-        new_employee = Employee(user_id = user.id)
+        #create a new employee instance with the id from the new user
+        new_employee = Employee(id = user.id)
 
         #add the new employee to the database and commit
         db.session.add(new_employee)
@@ -120,8 +120,8 @@ def update_employee(employee_id):
         #exclude unknown fileds which are in EmployeeSchema
         UserSchema().load(request.json, partial = True, unknown=EXCLUDE)
 
-        #get the user_id from employee id to update corresponding fields in users table
-        user_stmt = db.select(User).filter_by(id = employee.user_id)
+        #get the id to update corresponding fields in users table
+        user_stmt = db.select(User).filter_by(id = employee.id)
         user = db.session.scalar(user_stmt)
 
         #f_name, l_name and phone are in the users table

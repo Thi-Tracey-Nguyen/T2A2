@@ -4,9 +4,7 @@ from marshmallow import fields
 class Client(db.Model):
     __tablename__ = 'clients'
 
-    id = db.Column(db.Integer, primary_key=True)
-
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique = True)
+    id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
 
     user = db.relationship('User', back_populates = 'client', cascade = 'all, delete')
     pets = db.relationship('Pet', back_populates = 'client')
