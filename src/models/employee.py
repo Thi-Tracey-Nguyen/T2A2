@@ -3,7 +3,7 @@ from marshmallow import fields, validates
 from marshmallow.validate import And, Length, OneOf
 from marshmallow.exceptions import ValidationError
 
-VALID_ADMIN_STATUSES = ('True', 'False')
+VALID_ADMIN_STATUSES = ('true', 'True', 'false', 'False')
 
 class Employee(db.Model):
     __tablename__ = 'employees'

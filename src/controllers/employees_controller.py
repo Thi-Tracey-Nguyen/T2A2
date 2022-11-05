@@ -92,7 +92,6 @@ def create_employee():
     except IntegrityError:
         return {'message': 'Phone number already exists'}, 409
     
-
 #Route to delete a employee
 @employees_bp.route('/<int:employee_id>/', methods = ['DELETE'])
 def delete_employee(employee_id):
@@ -126,32 +125,17 @@ def update_employee(employee_id):
 
         #f_name, l_name and phone are in the users table
         #or keep as it is if not provided
-        user.f_name = request.json.get('f_name') or user.f_name
-        user.l_name = request.json.get('l_name') or user.l_name
-        user.phone = request.json.get('phone') or user.phone
+        user.f_name = request.json.get('f_name', user.f_name)
+        user.l_name = request.json.get('l_name', user.l_name)
+        user.phone = request.json.get('phone', user.phone)
         
         #to update password, load request into EmployeeSchema to apply validations
         EmployeeSchema().load(request.json, partial = True, unknown = EXCLUDE)
 
         #handles password in the request
-        employee.password = bcrypt.generate_password_hash(request.json.get('password', employee.password)).decode('utf8')
+        # employee.password = bcrypt.generate_password_hash(request.json.get('password', employee.password)).decode('utf8')
 
-        # # to handle 'is_admin' in the request
-        # # chek if it is provided first
-        # if request.json.get('is_admin'):
-        #     # these steps are used because request.json.get()
-        #     # returns a string while we want boolean
-        #     # and to sanitise the inputs
-        #     if request.json.get('is_admin').lower() == 'true':
-        #         employee.is_admin = True
-        #     elif request.json.get('is_admin').lower() == 'false':
-        #         employee.is_admin = False
-        # #if is_admin is not provided or invalid, keep as it is
-        # else:
-        #     employee.is_admin = employee.is_admin
-        # # employee.is_admin = json.loads(request.json.get('is_admin', str(employee.is_admin)))
-        
-        employee.is_admin = True if request.json.get('is_admin') else employee.is_admin
+        employee.is_admin = json.loads(request.json.get('is_admin', str(employee.is_admin)).lower())
 
         #commit the changes and response to the user
         db.session.commit()
