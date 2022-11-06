@@ -1,5 +1,5 @@
 from init import db, ma
-from datetime import datetime
+from datetime import datetime, date as dt
 from models.employee import Employee
 from marshmallow import fields, validates, validates_schema
 from marshmallow.exceptions import ValidationError
@@ -17,11 +17,18 @@ class Roster(db.Model):
 class RosterSchema(ma.Schema):
     employee = fields.Nested('EmployeeSchema', only = ['user'])
 
-    #validate that input date is valid and follows 'YYYY-MM-DD' format
+    #validate that input date 
     @validates('date')
     def validate_date(self, date):
+        #checks if input date is a valid date and follows 'YYYY-MM-DD' format
         try:
             date = datetime.strptime(date, '%Y-%m-%d').date()
+
+            #validate input date is in the future
+            if date <= dt.today():
+                raise ValidationError('Roster date must be in the future')
+
+        #catch VAlueError and raise ValidationError
         except ValueError:
             raise ValidationError("Input date is invalid or does not conform to 'YYYY-MM-DD' format")
 
@@ -45,8 +52,9 @@ class RosterSchema(ma.Schema):
 
         #if such roster exists, raise an exception
         if roster:
-            raise ValidationError('Employee is already rostered for this date')
+            raise ValidationError('The employee is already rostered for this date')
+
 
     class Meta:
-        fields = ('id', 'date', 'employee', 'employee_id')
+        fields = ('date', 'employee', 'employee_id', 'id')
         ordered = True

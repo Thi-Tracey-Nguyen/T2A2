@@ -349,7 +349,23 @@ def seed_table():
     Roster(
         date = '2022-12-05',
         employee_id = 15
-    )
+    ),
+    Roster(
+        date = '2022-12-06',
+        employee_id = 10
+    ),
+    Roster(
+        date = '2022-12-06',
+        employee_id = 11
+    ),
+    Roster(
+        date = '2022-12-07',
+        employee_id = 12
+    ),
+    Roster(
+        date = '2022-12-07',
+        employee_id = 13
+    ),
     ]
 
     db.session.add_all(bookings)

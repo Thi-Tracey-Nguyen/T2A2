@@ -1,7 +1,9 @@
 from flask import Blueprint, request
 from init import db
+from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from models.roster import Roster, RosterSchema
+from models.employee import Employee, EmployeeSchema
 from flask_jwt_extended import jwt_required
 from datetime import datetime
 
@@ -29,7 +31,7 @@ def get_one_roster(roster_id):
     else:
         return {'message': f'Cannot find roster with id {roster_id}'}, 404
 
-#Route to get add rosters by date
+#Route to get all rosters by date
 @rosters_bp.route('/<date>/')
 def get_roster_by_date(date):
     #get all rosters date matches API endpoint
@@ -39,6 +41,28 @@ def get_roster_by_date(date):
     # respond to the user
     return RosterSchema(many=True).dump(rosters)
 
+#Route to get all roster for one employee
+@rosters_bp.route('/employees/<int:employee_id>')
+def get_roster_by_employee_id(employee_id):
+
+    #get the employee whoes id matches API endpoint
+    stmt = db.select(Employee).filter_by(id = employee_id)
+    employee = db.session.scalar(stmt)
+
+    #checks if the employee exists
+    if employee:
+
+        #retrive the rosters where the employee_id matches the employee from db
+        roster_stmt = db.select(Roster).filter_by(employee_id = employee.id).order_by(desc(Roster.date))
+        rosters = db.session.scalars(roster_stmt)
+
+        # respond to the user
+        return RosterSchema(many=True, exclude=['employee']).dump(rosters)
+    
+    #if the employee does not exist
+    else:
+        return {'message': f'Cannot find employee with id {employee_id}'}, 404
+
 #Route to create new roster
 @rosters_bp.route('/', methods = ['POST'])
 def create_roster():
@@ -47,8 +71,8 @@ def create_roster():
 
     #create new roster instance
     new_roster = Roster(
-        date = request.json.get('date'),
-        employee_id = request.json.get('employee_id')
+        date = data['date'],
+        employee_id = data['employee_id']
     )
 
     #add new roster to the database and commit it
