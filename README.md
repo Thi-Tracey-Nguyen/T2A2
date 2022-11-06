@@ -1,4 +1,4 @@
-1. The problem  
+### The problem (Q1)  
 
 Every business needs a reliable and efficient system to manage their clientele, workers and bookings. The purpose of this API application is to provide all-in-one management solution to a business that has the clients, staff and bookings as the core of their business model.  
 
@@ -10,15 +10,15 @@ With this application, users interact with the database using user-friendly REST
 * Data security: by authentication measures such as password log-in and authorization by multi-tired user privilege. 
 * Data integrity: by valiation methods so that roster and bookings can be planned effectively.  
 
-2. Why do the problems need solving  
+### Why do the problems need solving (Q2)  
 
 Having a well-designed and user-friendly management system is essential to the operations of any business. It streamlines customer interactions, saves time and increases customer satisfaction.  
 
-Similarly, proper staff and roster management ensure staff count is appropriate for expected work on a given day, and makes with wage payment fast and precise.  
+Similarly, proper staff and roster management ensure staff count is appropriate for expected work on a given day, and makes wage payment efficient.  
 
 Data security provided with the application is important in protecting staff and clients' information from data breaches as well as ensuring the correctness of data in the database. 
 
-3. Database system  
+### Database system (Q3)  
    
 Database system chosen for the application is PostgreSQL due to the following advanatages:
 * Open source (free)
@@ -32,8 +32,19 @@ Drawbacks compared to other databases
 * Popularity
 * https://www.digitalocean.com/community/tutorials/sqlite-vs-mysql-vs-postgresql-a-comparison-of-relational-database-management-systems
 
+### ORM (key functionalities and benefits) (Q4)
+ORM stands for Object Relational Mapper, which supports the interactions between an application and its database.  
 
-10. Planning and tracking of tasks
+The chosen ORM for the project is SQLAlchemy becaude it is database-agnostic (which means it can be flexibily used with any databases), and it is highly compatible with Flask and Python. 
+
+Key benefits of an ORM are:
+- It allows the developers to query and manipulate database data using object-oriented programming language, therefore, it reduces the length and complexity of code compared to embedded SQL.
+- It makes the development process easier because developers do not need to switch between OOP and SQL.  
+- It has great support for tasks such as connections, seeds and migrations. As a result, implementation is straightforward. 
+- It protects data from direct SQL injections because does not take explicit SQL queries and requires all interactions performed on OOP objects instead of  database tables.
+- It is databse-agnostic which makes switching from one database (for development) to another one (for deployment) seamless whilst keeping the code base consistent. 
+
+1.  Planning and tracking of tasks
 
 The project is divided into three main parts:
 * Initial planning
@@ -64,7 +75,7 @@ Task #2: 'Create the clients entity, Client model'
 * Documentation: first part of R4
 
 Task #3: Create API endpoints for CRUD operations on clients entity
-* Code: create the client blueprint, register it and API endpoints for CRUD operations 
+* Code: create the client blueprint, register it and API endpoints for CRUD operations. Create errorhandlers
 * Testing: test all the CRUD operations on clients entity
 * Documentation: first part of R5
 

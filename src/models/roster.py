@@ -28,7 +28,7 @@ class RosterSchema(ma.Schema):
             if date <= dt.today():
                 raise ValidationError('Roster date must be in the future')
 
-        #catch VAlueError and raise ValidationError
+        #catch ValueError and raise ValidationError
         except ValueError:
             raise ValidationError("Input date is invalid or does not conform to 'YYYY-MM-DD' format")
 
