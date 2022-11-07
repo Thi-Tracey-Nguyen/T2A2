@@ -1,3 +1,4 @@
+import secrets
 from flask import Blueprint, request, json
 from init import db
 from sqlalchemy.exc import IntegrityError
@@ -59,6 +60,10 @@ def get_one_employee_by_phone(phone):
 #Route to create new employee
 @employees_bp.route('/', methods = ['POST'])
 def create_employee():
+    #function to generate random password
+    def auto_password():
+        password_length = 10
+        return secrets.token_urlsafe(password_length)
     #create a user with provided info first
     #load info from the request to UserSchema to apply validation methods
     data = UserSchema().load(request.json)
@@ -79,7 +84,11 @@ def create_employee():
         user = db.session.scalar(stmt)
 
         #create a new employee instance with the id from the new user
-        new_employee = Employee(id = user.id)
+        new_employee = Employee(
+            id = user.id,
+            password = auto_password(),
+            email = user.f_name.lower() + '.' + user.l_name.lower() + '@dog_spa.com'
+        )
 
         #add the new employee to the database and commit
         db.session.add(new_employee)

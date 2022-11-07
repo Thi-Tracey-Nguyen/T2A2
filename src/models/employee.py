@@ -5,13 +5,14 @@ from marshmallow.exceptions import ValidationError
 
 VALID_ADMIN_STATUSES = ('true', 'True', 'false', 'False')
 
+
 class Employee(db.Model):
     __tablename__ = 'employees'
 
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key = True)
 
     email = db.Column(db.String(50), unique = True, nullable = False)
-    password = db.Column(db.String, default = bcrypt.generate_password_hash('user123').decode('utf8'))
+    password = db.Column(db.String, nullable = False)
     is_admin = db.Column(db.Boolean, default = False)
 
     user = db.relationship('User', viewonly=True)

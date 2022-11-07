@@ -1,6 +1,7 @@
 from init import db, ma 
 from marshmallow import fields
 from marshmallow.validate import And, Length, Regexp
+from datetime import date
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -8,7 +9,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     f_name = db.Column(db.String(15), nullable=False)
     l_name = db.Column(db.String(15))
-    date_created = db.Column(db.Date)
+    date_created = db.Column(db.Date, default = date.today())
     phone = db.Column(db.String, nullable=False, unique=True)
     type_id = db.Column(db.Integer, db.ForeignKey('user_types.id'), nullable=False)
 

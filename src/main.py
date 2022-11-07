@@ -1,5 +1,5 @@
 from flask import Flask
-from init import db, ma, bcrypt
+from init import db, ma, bcrypt, jwt
 from marshmallow.exceptions import ValidationError
 from sqlalchemy.exc import IntegrityError, DataError
 import os
@@ -10,15 +10,18 @@ from controllers.pets_controller import pets_bp
 from controllers.employees_controller import employees_bp
 from controllers.bookings_controller import bookings_bp
 from controllers.rosters_controller import rosters_bp
+from controllers.auth_controller import auth_bp
 
 def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
+    app.config['JWT_SECRET_KEY'] = os.environ.get('SECRET_KEY')
     app.config['JSON_SORT_KEYS'] = False
 
     db.init_app(app)
     ma.init_app(app)
     bcrypt.init_app(app)
+    jwt.init_app(app)
 
     @app.route('/')
     def index():
@@ -31,6 +34,7 @@ def create_app():
     app.register_blueprint(employees_bp)
     app.register_blueprint(bookings_bp)
     app.register_blueprint(rosters_bp)
+    app.register_blueprint(auth_bp)
 
     @app.errorhandler(404)
     def not_found(err):

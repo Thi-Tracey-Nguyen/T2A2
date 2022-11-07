@@ -1,6 +1,6 @@
 from datetime import date
 from flask import Blueprint
-from init import db
+from init import db, bcrypt
 from models.user import User
 from models.client import Client
 from models.employee import Employee
@@ -16,6 +16,7 @@ from models.roster import Roster
 
 db_commands = Blueprint('db', __name__)
 
+#function to generate client or employee object based on user info
 def generate_record():
     stmt = db.select(User)
     records = db.session.scalars(stmt)
@@ -23,8 +24,13 @@ def generate_record():
         if record.type_id == 1:
             new_record = Client(id = record.id)
         else:
-            email = record.f_name.lower() + '.' + record.l_name.lower() + '@dog_spa.com'
-            new_record = Employee(id = record.id, email = email)
+            email = record.f_name.lower() + '.' + record.l_name.lower() + '@dogspa.com'
+            password = record.f_name[:2] + record.f_name[-2:] + record.l_name[0] + record.l_name[-1] + 'ds123'
+            new_record = Employee(
+                id = record.id, 
+                email = email, 
+                password = bcrypt.generate_password_hash(password).decode('utf8')
+            )
         db.session.add(new_record)
         db.session.commit()
 
@@ -148,26 +154,35 @@ def seed_table():
         date_created = date.today(),
         type_id = 2
     ),
-    User(
-        f_name = 'Pam',
-        l_name = 'Beesly',
-        phone = '279531',
-        date_created = date.today(),
-        type_id = 2
-    ),
-    User(
-        f_name = 'Angela',
-        l_name = 'Martin',
-        phone = '558709',
-        date_created = date.today(),
-        type_id = 2
-    ),
     ]
 
     db.session.add_all(users)
     db.session.commit()
 
     generate_record()
+
+    admin_user = User(
+        f_name = 'admin',
+        l_name = 'admin',
+        phone = '000000',
+        type_id = 2
+    )
+    
+    db.session.add(admin_user)
+    db.session.commit()
+
+    #generate admin employee
+    admin_stmt = db.select(User).filter_by(phone = '000000')
+    admin = db.session.scalar(admin_stmt)
+    admin_employee = Employee(
+        id = admin.id,
+        email = 'admin@dogspa.com',
+        password = bcrypt.generate_password_hash('admin123!').decode('utf8'),
+        is_admin = True
+    )
+
+    db.session.add(admin_employee)
+    db.session.commit()
 
     pet_types = [
     PetType(
@@ -319,6 +334,10 @@ def seed_table():
         employee_id = 11
     ),
     Roster(
+        date = '2022-12-01',
+        employee_id = 12
+    ),
+    Roster(
         date = '2022-12-02',
         employee_id = 10
     ),
@@ -327,8 +346,16 @@ def seed_table():
         employee_id = 11
     ),
     Roster(
-        date = '2022-12-03',
+        date = '2022-12-02',
         employee_id = 12
+    ),
+    Roster(
+        date = '2022-12-03',
+        employee_id = 10
+    ),
+    Roster(
+        date = '2022-12-03',
+        employee_id = 11
     ),
     Roster(
         date = '2022-12-03',
@@ -343,12 +370,20 @@ def seed_table():
         employee_id = 13
     ),
     Roster(
-        date = '2022-12-05',
-        employee_id = 14
+        date = '2022-12-04',
+        employee_id = 11
     ),
     Roster(
         date = '2022-12-05',
-        employee_id = 15
+        employee_id = 12
+    ),
+    Roster(
+        date = '2022-12-05',
+        employee_id = 13
+    ),
+    Roster(
+        date = '2022-12-05',
+        employee_id = 10
     ),
     Roster(
         date = '2022-12-06',
@@ -359,12 +394,20 @@ def seed_table():
         employee_id = 11
     ),
     Roster(
+        date = '2022-12-06',
+        employee_id = 13
+    ),
+    Roster(
         date = '2022-12-07',
         employee_id = 12
     ),
     Roster(
         date = '2022-12-07',
         employee_id = 13
+    ),
+    Roster(
+        date = '2022-12-07',
+        employee_id = 11
     ),
     ]
 
