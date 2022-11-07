@@ -21,14 +21,17 @@ def generate_record():
     stmt = db.select(User)
     records = db.session.scalars(stmt)
     for record in records:
+        email = record.f_name.lower() + '.' + record.l_name.lower()
+        password = record.f_name[:2] + record.f_name[-2:] + record.l_name[0] + record.l_name[-1] + 'ds123'
         if record.type_id == 1:
-            new_record = Client(id = record.id)
+            new_record = Client(
+                id = record.id,
+                password = bcrypt.generate_password_hash(password).decode('utf8')
+            )
         else:
-            email = record.f_name.lower() + '.' + record.l_name.lower() + '@dogspa.com'
-            password = record.f_name[:2] + record.f_name[-2:] + record.l_name[0] + record.l_name[-1] + 'ds123'
             new_record = Employee(
-                id = record.id, 
-                email = email, 
+                id = record.id,
+                email = email + '@dogspa.com',
                 password = bcrypt.generate_password_hash(password).decode('utf8')
             )
         db.session.add(new_record)
@@ -67,43 +70,48 @@ def seed_table():
         l_name = 'Green',
         phone = '300573',
         date_created = date.today(),
-        type_id = 1
-        
+        type_id = 1,
+        personal_email = 'rachel.green@friends.com'
     ),
     User(
         f_name = 'Phoebe',
         l_name = 'Buffay',
         phone = '779149',
         date_created = date.today(),
-        type_id = 1
+        type_id = 1,
+        personal_email = 'phoebe.buffay@friends.com'
     ),
     User(
         f_name = 'Joey',
         l_name = 'Tribbiani',
         phone = '271746',
         date_created = date.today(),
-        type_id = 1
+        type_id = 1,
+        personal_email = 'joey.tribbiani@friends.com'
     ),
     User(
         f_name = 'Chandler',
         l_name = 'Bing',
         phone = '871413',
         date_created = date.today(),
-        type_id = 1
+        type_id = 1, 
+        personal_email = 'chandler.bing@friends.com'
     ),
     User(
         f_name = 'Ross',
         l_name = 'Geller',
         phone = '702162',
         date_created = date.today(),
-        type_id = 1
+        type_id = 1,
+        personal_email = 'ross.geller@friends.com'
     ),
     User(
         f_name = 'Gunther',
         l_name = 'Adkins',
         phone = '927623',
         date_created = date.today(),
-        type_id = 1
+        type_id = 1,
+        personal_email = 'gunther.adkins@friends.com'
     ),
     User(
         f_name = 'Carol',
@@ -111,20 +119,23 @@ def seed_table():
         phone = '449866',
         date_created = date.today(),
         type_id = 1,
+        personal_email = 'carol.frye@friends.com'
     ),
     User(
         f_name = 'Estelle',
         l_name = 'Leonard',
         phone = '184288',
         date_created = date.today(),
-        type_id = 1
+        type_id = 1,
+        personal_email = 'estelle.leonard@friends.com'
     ),
     User(
         f_name = 'Richard',
         l_name = 'Burke',
         phone = '129049',
         date_created = date.today(),
-        type_id = 1
+        type_id = 1,
+        personal_email = 'richard.burke@friends.com'
     ),
     User(
         f_name = 'Dwight',

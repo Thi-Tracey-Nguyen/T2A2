@@ -2,6 +2,7 @@ from flask import Blueprint, request
 from init import db
 from sqlalchemy.exc import IntegrityError
 from models.user import User, UserSchema
+from controllers.auth_controller import authorize_admin, authorize_employee, authorize_employee_or_user
 from flask_jwt_extended import jwt_required
 
 
@@ -11,6 +12,9 @@ users_bp = Blueprint('Users', __name__, url_prefix = '/users')
 @users_bp.route('/')
 @jwt_required()
 def get_all_users():
+    #checks if the user is an employee
+    authorize_employee()
+
     #get all records of the User model
     stmt = db.select(User)
     users = db.session.scalars(stmt)
@@ -20,6 +24,9 @@ def get_all_users():
 @users_bp.route('/<int:user_id>/')
 @jwt_required()
 def get_one_user(user_id):
+    #checks if the user is the account owner or a staff member
+
+
     #get one user whose id matches API endpoint
     stmt = db.select(User).filter_by(id = user_id)
     user = db.session.scalar(stmt)
@@ -72,6 +79,7 @@ def create_user():
     
 #Route to delete a user
 @users_bp.route('/<int:user_id>/', methods = ['DELETE'])
+@jwt_required()
 def delete_user(user_id):
     #get one user whose id matches API endpoint
     stmt = db.select(User).filter_by(id = user_id)
@@ -87,6 +95,7 @@ def delete_user(user_id):
 
 #Route to update user's info
 @users_bp.route('/<int:user_id>/', methods = ['PUT', 'PATCH'])
+@jwt_required()
 def update_user(user_id):
     #get one user whose id matches API endpoint
     stmt = db.select(User).filter_by(id = user_id)
