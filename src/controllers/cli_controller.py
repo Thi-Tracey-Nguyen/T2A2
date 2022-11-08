@@ -22,7 +22,7 @@ def generate_record():
     records = db.session.scalars(stmt)
     for record in records:
         email = record.f_name.lower() + '.' + record.l_name.lower()
-        password = record.f_name[:2] + record.f_name[-2:] + record.l_name[0] + record.l_name[-1] + 'ds123'
+        password = record.f_name[:2] + record.f_name[-2:] + record.l_name[0] + record.l_name[-1] + 'ds123!'
         if record.type_id == 1:
             new_record = Client(
                 id = record.id,
@@ -36,8 +36,7 @@ def generate_record():
             )
         db.session.add(new_record)
         db.session.commit()
-
-        
+     
 @db_commands.cli.command('create')
 def create_table():
     db.create_all()
@@ -188,7 +187,7 @@ def seed_table():
     admin_employee = Employee(
         id = admin.id,
         email = 'admin@dogspa.com',
-        password = bcrypt.generate_password_hash('admin123!').decode('utf8'),
+        password = bcrypt.generate_password_hash('Admin123!').decode('utf8'),
         is_admin = True
     )
 

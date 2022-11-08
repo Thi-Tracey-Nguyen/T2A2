@@ -5,6 +5,7 @@ from models.employee import Employee
 from models.user import User, UserSchema
 from models.client import Client, ClientSchema
 from datetime import timedelta
+from marshmallow import EXCLUDE
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 auth_bp = Blueprint('auth', __name__, url_prefix = '/auth')
@@ -13,13 +14,16 @@ auth_bp = Blueprint('auth', __name__, url_prefix = '/auth')
 @auth_bp.route('/register/', methods=['POST'])
 def auth_register_client():
     #create a user with provided info first
-    #load info from the request to UserSchema to apply validation methods
-    data = UserSchema().load(request.json)
+    #load info from the request to UserSchema and ClientSchema to apply validation methods
+    data = request.json
+    UserSchema(unknown=EXCLUDE).load(data)
+    ClientSchema(unknown=EXCLUDE).load(data)
     #create a new user instance from the provided data
     user = User(
         f_name = data['f_name'],
         l_name = data['l_name'],
         phone = data['phone'],
+        personal_email = data['personal_email'],
         type_id = 1 #type_id for client
     )
     #add user to the database if no conflicts
