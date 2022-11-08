@@ -62,7 +62,6 @@ def auth_login():
 
     #if the user or employee exists and password matches the hash
     if employee and bcrypt.check_password_hash(employee.password, request.json['password']):
-
         # generate token
         token = create_access_token(identity=employee.id, expires_delta=timedelta(days=1))
 
@@ -74,7 +73,7 @@ def auth_login():
 
         if bcrypt.check_password_hash(client.password, request.json['password']):
             # generate token
-            token = create_access_token(identity=employee.id, expires_delta=timedelta(days=1))
+            token = create_access_token(identity=user.id, expires_delta=timedelta(days=1))
             return {'email': user.personal_email, 'token': token, 'is_admin': 'false'}
         else:
             return {"error": "Invalid email or password"}, 401 #401 Unauthorized
@@ -107,18 +106,26 @@ def authorize_employee():
         abort(401)
 
 
-def authorize_employee_or_user(number):
+def authorize_employee_or_user(args):
     #extract the user identity from the token
     user_id = get_jwt_identity()
 
-    #get the user from the id
-    stmt = db.select(User).where(db.or_(User.id == number, User.phone == number))
+    # #get type_id from the token
+    # token_stmt = db.select(User).filter_by(id = user_id)
+    # token_user = db.session.scalar(token_stmt)
+
+    #get the user from the provided id
+    stmt = db.select(User).where(db.or_(User.id == args.get('id'), (User.phone == args.get('phone'))))
     user = db.session.scalar(stmt)
 
-    #if the id from the token does not match provided id,
+
+    #if the id from the token does not match looked up id,
     #or the user is not an employee, abort with 401 error
-    if not user.id == user_id or not user.type_id == 2:
-        abort(401)
+    try:
+        if not user.id == user_id:
+            abort(401)
+    except AttributeError:
+        return {'message': 'Cannot find client with provided info'}, 404
 
 # def authorize_employee_or_user_phone(phone):
 #     #extract the user identity from the token

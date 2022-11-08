@@ -44,6 +44,10 @@ def create_app():
     def bad_request(err):
         return {'Error': str(err)}, 400
 
+    @app.errorhandler(401)
+    def unauthorize(err):
+        return {'Error': str(err)}, 401
+
     @app.errorhandler(KeyError)
     def key_error(err):
         return {'Error': f'The field {err} is required'}, 400

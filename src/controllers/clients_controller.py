@@ -11,7 +11,7 @@ clients_bp = Blueprint('Clients', __name__, url_prefix = '/clients')
 
 #Route to return all clients
 @clients_bp.route('/')
-@jwt_required
+@jwt_required()
 def get_all_clients():
     #verify if the user is an employee
     authorize_employee()
@@ -19,32 +19,34 @@ def get_all_clients():
     #get all records of the Client model
     stmt = db.select(Client)
     clients = db.session.scalars(stmt)
-    return ClientSchema(many=True).dump(clients)
+    return ClientSchema(many=True, exclude=['password']).dump(clients)
 
 #Route to get one client's info by phone or id
-@clients_bp.route('/<number>/')
+@clients_bp.route('/search/')
 @jwt_required()
-def get_one_client(number):
+def search_client():
     #verify the user is an employee or the owner of the account
-    authorize_employee_or_user(number)
 
+    args = request.args
+
+    authorize_employee_or_user(args)
     #get one user whose id matches API endpoint
     #user.type_id == 1 to ensure user is a client
     #have to search in the users table because it is where the info is stored
-    stmt = db.select(User).where(db.and_(User.type_id == 1), db.or_(User.id == int(number), User.phone == number))
+    stmt = db.select(User).where(db.and_(User.type_id==1), db.or_(User.id==args.get('id'), User.phone==args.get('phone')))
     user = db.session.scalar(stmt)
 
     #if the user exists user the user id to retrieve the client
-    if user:
+    try:
         #get the client whose id matches the user id
-        client_stmt = db.select(Client).filter_by(id = user.id)
+        client_stmt = db.select(Client).filter_by(id=user.id)
         client = db.session.scalar(client_stmt)
 
         #respond to the user
-        return ClientSchema().dump(client)
+        return ClientSchema(exclude = ['password']).dump(client)
 
     #if user with the provided id does not exist, return an error message
-    else:
+    except AttributeError:
         return {'message': 'Cannot find client with provided info'}, 404
 
 # #Route to get one client's info by unique phone number
@@ -142,7 +144,7 @@ def update_client(number):
     user = db.session.scalar(stmt)
 
     # check if the user exists, if they do, update their info
-    if client:
+    if user:
 
         #load the request into the UserSchema to use validations
         data = UserSchema().load(request.json)
