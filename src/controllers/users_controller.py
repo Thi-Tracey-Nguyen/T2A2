@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from init import db
 from sqlalchemy.exc import IntegrityError
 from models.user import User, UserSchema
-from controllers.auth_controller import authorize_admin, authorize_employee, authorize_employee_or_user
+from controllers.auth_controller import authorize_employee, authorize_employee_or_account_owner
 from flask_jwt_extended import jwt_required
 
 
@@ -20,37 +20,21 @@ def get_all_users():
     users = db.session.scalars(stmt)
     return UserSchema(many=True, exclude = ['client', 'employee']).dump(users)
 
-#Route to get one user's info by user_id
-@users_bp.route('/<int:user_id>/')
+#Route to get one client's info by phone or id
+@users_bp.route('/search/')
 @jwt_required()
-def get_one_user(user_id):
-    #checks if the user is the account owner or a staff member
+def search_user():
+    args = request.args
 
+    #verify the user is an employee or the owner of the account
+    authorize_employee_or_account_owner(args)
 
     #get one user whose id matches API endpoint
-    stmt = db.select(User).filter_by(id = user_id)
+    stmt = db.select(User).where(db.or_(User.id==args.get('id'), User.phone==args.get('phone')))
     user = db.session.scalar(stmt)
-    # check if the user exists, if they do, return the UserSchema
-    if user:
-        return UserSchema(exclude = ['client', 'staff']).dump(user)
-    #if user with the provided id does not exist, return an error message
-    else:
-        return {'message': f'Cannot find user with id {user_id}'}, 404
 
-#Route to get one user's info by unique phone number
-@users_bp.route('/phone/<phone>/')
-@jwt_required()
-def get_one_user_by_phone(phone):
-    #get one user whose phone number matches API endpoint
-    stmt = db.select(User).filter_by(phone = phone)
-    user = db.session.scalar(stmt)
-    # check if the user exists, if they do, return the UserSchema
-    if user:
-        return UserSchema(exclude = ['client', 'employee']).dump(user)
-    #if user with the provided phone number does not exist, return an error message
-    else:
-        return {'message': 'Cannot find user with the associated phone number'}, 404
-
+    #respond to the user
+    return UserSchema(exclude = ['client', 'employee']).dump(user)
 
 #Route to create new user
 @users_bp.route('/', methods = ['POST'])

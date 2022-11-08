@@ -105,37 +105,46 @@ def authorize_employee():
     if not employee:
         abort(401)
 
-
-def authorize_employee_or_user(args):
+#this function is used when accessing and editing client's info
+def authorize_employee_or_account_owner(args):
     #extract the user identity from the token
     user_id = get_jwt_identity()
 
-    # #get type_id from the token
-    # token_stmt = db.select(User).filter_by(id = user_id)
-    # token_user = db.session.scalar(token_stmt)
+    #get user from the token (to access type_id later)
+    token_stmt = db.select(User).filter_by(id = user_id)
+    token_user = db.session.scalar(token_stmt)
 
     #get the user from the provided id
-    stmt = db.select(User).where(db.or_(User.id == args.get('id'), (User.phone == args.get('phone'))))
+    stmt = db.select(User).where(db.and_(User.type_id == 1), db.or_(User.id == args.get('id'), (User.phone == args.get('phone'))))
     user = db.session.scalar(stmt)
 
 
     #if the id from the token does not match looked up id,
     #or the user is not an employee, abort with 401 error
     try:
-        if not user.id == user_id:
+        if not user.id == user_id and not token_user.type_id == 2:
             abort(401)
     except AttributeError:
         return {'message': 'Cannot find client with provided info'}, 404
 
-# def authorize_employee_or_user_phone(phone):
-#     #extract the user identity from the token
-#     user_id = get_jwt_identity()
+#this function is used when accessing and editing an employee's info
+def authorize_admin_or_account_owner(args):
+    #extract the user identity from the token
+    user_id = get_jwt_identity()
 
-#     #get the user from the phone number
-#     stmt = db.select(User).filter_by(phone = phone)
-#     user = db.session.scalar(stmt)
+    #get employee from the token 
+    token_stmt = db.select(Employee).filter_by(id = user_id)
+    token_user = db.session.scalar(token_stmt)
 
-#     #if the id from the token does not match provided id,
-#     #or the user is not an employee, abort with 401 error
-#     if not user.id == user_id or not user.type_id == 2:
-#         abort(401)
+    #get the user from the provided id
+    stmt = db.select(User).where(db.or_(User.id == args.get('id'), (User.phone == args.get('phone'))))
+    user = db.session.scalar(stmt)
+
+    #if the id from the token does not match looked up id,
+    #or the user is not an admin, abort with 401 error
+    try:
+        if  not token_user or (not user.id == user_id and token_user.is_admin is False):
+                abort(401)
+    except AttributeError:
+        return {'message': 'Cannot find employee with provided info'}, 404
+

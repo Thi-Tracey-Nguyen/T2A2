@@ -3,7 +3,7 @@ from init import db
 from sqlalchemy.exc import IntegrityError
 from models.client import Client, ClientSchema
 from models.user import User, UserSchema
-from controllers.auth_controller import authorize_admin, authorize_employee, authorize_employee_or_user
+from controllers.auth_controller import authorize_employee, authorize_employee_or_account_owner
 from flask_jwt_extended import jwt_required
 
 
@@ -25,11 +25,11 @@ def get_all_clients():
 @clients_bp.route('/search/')
 @jwt_required()
 def search_client():
-    #verify the user is an employee or the owner of the account
-
     args = request.args
+   
+    #verify the user is an employee or the owner of the account
+    authorize_employee_or_account_owner(args)
 
-    authorize_employee_or_user(args)
     #get one user whose id matches API endpoint
     #user.type_id == 1 to ensure user is a client
     #have to search in the users table because it is where the info is stored
