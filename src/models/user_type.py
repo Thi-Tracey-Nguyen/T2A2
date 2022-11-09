@@ -1,5 +1,6 @@
 from init import db, ma
-from marshmallow import fields
+from marshmallow import fields, validates
+from marshmallow.exceptions import ValidationError
 
 class UserType(db.Model):
     __tablename__ = 'user_types'
@@ -7,9 +8,21 @@ class UserType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(10))
 
-    user = db.relationship('User', back_populates = 'type')
+    users = db.relationship('User', back_populates = 'type')
 
 class UserTypeSchema(ma.Schema):
+    users = fields.List(fields.Nested('UserSchema'))
+
+    @validates('name')
+    def validate_name(self, value):
+        if len(value) < 2:
+            raise ValidationError('Type name must be longer than 2 characters')
+            
+        stmt = db.select(UserType).filter_by(name = value.capitalize())
+        type_name = db.session.scalar(stmt)
+
+        if type_name:
+            raise ValidationError('User type already exists')
     class Meta:
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'users')
         ordered = True

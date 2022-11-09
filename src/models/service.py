@@ -1,4 +1,7 @@
 from init import db, ma
+from marshmallow import fields, validates
+from marshmallow.validate import Range
+from marshmallow.exceptions import ValidationError
 
 class Service(db.Model):
     __tablename__ = 'services'
@@ -12,6 +15,20 @@ class Service(db.Model):
     bookings = db.relationship('Booking', back_populates = 'service')
 
 class ServiceSchema(ma.Schema):
+    duration = fields.Float(required=True, validate=(Range(min=0.25)))
+    price = fields.Float(required=True, validate=(Range(min=20)))
+
+    @validates('name')
+    def validate_name(self, value):
+        if len(value) < 2:
+            raise ValidationError('Type name must be longer than 2 characters')
+            
+        stmt = db.select(Service).filter_by(name = value.capitalize())
+        type_name = db.session.scalar(stmt)
+
+        if type_name:
+            raise ValidationError('Service already exists')
+    
     class Meta:
-        fields = ('id', 'name', 'duration', 'price', 'bookings')
+        fields = ('id', 'name', 'duration', 'price')
         ordered = True

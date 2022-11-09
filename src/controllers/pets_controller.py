@@ -60,8 +60,8 @@ def create_pet():
     #breed is optional so use request.json.get
     #to avoid crashing the program
     pet = Pet(
-        name = data['name'],
-        breed = request.json.get('breed'), 
+        name = data['name'].capitalize(),
+        breed = request.json.get('breed').capitalize(), 
         client_id = data['client_id'],
         year = data['year'],
         size_id = data['size_id'],
@@ -108,9 +108,9 @@ def update_pet(pet_id):
     if pet:
         try:
             #get the info from the request, if not provided, keep as it is
-            pet.name = request.json.get('name', pet.name)
+            pet.name = request.json.get('name', pet.name).capitalize()
             pet.client_id = request.json.get('client_id', pet.client_id)
-            pet.breed = request.json.get('breed', pet.breed)
+            pet.breed = request.json.get('breed', pet.breed).capitalize()
             pet.year = request.json.get('year', pet.year)
             pet.size_id = request.json.get('size_id', pet.size_id)
             pet.type_id = request.json.get('type_id', pet.type_id)

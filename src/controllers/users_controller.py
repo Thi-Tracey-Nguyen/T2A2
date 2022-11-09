@@ -18,7 +18,7 @@ def get_all_users():
     #get all records of the User model
     stmt = db.select(User)
     users = db.session.scalars(stmt)
-    return UserSchema(many=True, exclude = ['client', 'employee']).dump(users)
+    return UserSchema(many=True).dump(users)
 
 #Route to get one client's info by phone or id
 @users_bp.route('/search/')
@@ -45,8 +45,8 @@ def create_user():
     data = UserSchema().load(request.json)
     #create a new user instance from the provided data
     user = User(
-        f_name = data['f_name'],
-        l_name = data['l_name'],
+        f_name = data['f_name'].capitalize(),
+        l_name = data['l_name'].capitalize(),
         phone = data['phone'],
     )
     #add user to the database if no conflicts
@@ -93,9 +93,9 @@ def update_user(user_id):
         try:
             #assign user's attributes with provided values 
             #or keep as it is if not provided
-            user.f_name = data.get('f_name') or user.f_name
-            user.l_name = data.get('l_name') or user.l_name
-            user.phone = data.get('phone') or user.phone
+            user.f_name = data.get('f_name', user.f_name).capitalize() 
+            user.l_name = data.get('l_name',  user.l_name).capitalize()
+            user.phone = data.get('phone', user.phone)
 
             #commit the changes and response to the user
             db.session.commit()

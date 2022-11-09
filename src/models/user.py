@@ -14,11 +14,12 @@ class User(db.Model):
     type_id = db.Column(db.Integer, db.ForeignKey('user_types.id'), nullable=False)
     personal_email = db.Column(db.String)
 
-    type = db.relationship('UserType')
+    type = db.relationship('UserType', back_populates = 'users')
     client = db.relationship('Client', back_populates = 'user', cascade = 'all, delete')
     employee = db.relationship('Employee', back_populates = 'user', cascade = 'all, delete')
 
 class UserSchema(ma.Schema):
+    type = fields.Nested('UserTypeSchema', only = ['name'])
 
     phone = fields.String(required = True,
     validate = And(Length(min=6, max=6, error = 'Phone number must be 6 digit long'),
@@ -26,5 +27,5 @@ class UserSchema(ma.Schema):
     ))
 
     class Meta:
-        fields = ('id', 'f_name', 'l_name', 'phone', 'personal_email', 'employee', 'client')
+        fields = ('id', 'f_name', 'l_name', 'phone', 'personal_email', 'type')
         ordered = True

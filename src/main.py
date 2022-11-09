@@ -10,6 +10,8 @@ from controllers.pets_controller import pets_bp
 from controllers.employees_controller import employees_bp
 from controllers.bookings_controller import bookings_bp
 from controllers.rosters_controller import rosters_bp
+from controllers.user_types_controller import user_types_bp
+from controllers.services_controller import services_bp
 from controllers.auth_controller import auth_bp
 
 def create_app():
@@ -35,6 +37,8 @@ def create_app():
     app.register_blueprint(bookings_bp)
     app.register_blueprint(rosters_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(user_types_bp)
+    app.register_blueprint(services_bp)
 
     @app.errorhandler(404)
     def not_found(err):
