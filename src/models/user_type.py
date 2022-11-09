@@ -23,6 +23,7 @@ class UserTypeSchema(ma.Schema):
 
         if type_name:
             raise ValidationError('User type already exists')
+            
     class Meta:
         fields = ('id', 'name', 'users')
         ordered = True

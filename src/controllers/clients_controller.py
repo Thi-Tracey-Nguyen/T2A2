@@ -21,6 +21,19 @@ def get_all_clients():
     clients = db.session.scalars(stmt)
     return ClientSchema(many=True, exclude=['password']).dump(clients)
 
+#Route to get one client by id
+@clients_bp.route('/<int:client_id>/')
+def get_one_client(client_id):
+    #get one client whose id matches API endpoint
+    stmt = db.select(User).filter_by(id = client_id)
+    client = db.session.scalar(stmt)
+    # check if the client exists, if they do, return the UserSchema
+    if client:
+        return UserSchema().dump(client)
+    #if client with the provided id does not exist, return an error message
+    else:
+        return {'message': f'Cannot find client with id {client_id}'}, 404
+
 #Route to get one client's info by phone or id
 @clients_bp.route('/search/')
 @jwt_required()
@@ -49,28 +62,6 @@ def search_client():
     except AttributeError:
         return {'message': 'Cannot find client with provided info'}, 404
 
-# #Route to get one client's info by unique phone number
-# @clients_bp.route('/phone/<phone>/')
-# @jwt_required()
-# def get_one_client_by_phone(phone):
-#     #verify the user is an employee
-#     authorize_employee_or_user()
-
-#     #has to go through users table because it is where phone number is stored
-#     #get one user whose phone number matches API endpoint
-#     stmt = db.select(User).filter_by(phone = phone)
-#     user = db.session.scalar(stmt)
-
-#     #retrieve id from the user and look it up in the clients table
-#     client_stmt = db.select(Client).filter_by(id = user.id)
-#     client = db.session.scalar(client_stmt)
-
-#     # check if the client exists, if they do, return the ClientSchema
-#     if client:
-#         return ClientSchema().dump(client)
-#     #if client with the provided phone number does not exist, return an error message
-#     else:
-#         return {'message': 'Cannot find client associated with the phone number'}, 404
 
 #Route to create new client onsite
 @clients_bp.route('/', methods = ['POST'])

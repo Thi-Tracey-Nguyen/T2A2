@@ -20,7 +20,20 @@ def get_all_users():
     users = db.session.scalars(stmt)
     return UserSchema(many=True).dump(users)
 
-#Route to get one client's info by phone or id
+#Route to get one user by id
+@users_bp.route('/<int:user_id>/')
+def get_one_user(user_id):
+    #get one user whose id matches API endpoint
+    stmt = db.select(User).filter_by(id = user_id)
+    user = db.session.scalar(stmt)
+    # check if the user exists, if they do, return the UserSchema
+    if user:
+        return UserSchema().dump(user)
+    #if user with the provided id does not exist, return an error message
+    else:
+        return {'message': f'Cannot find user with id {user_id}'}, 404
+
+#Route to get one user's info by phone or id
 @users_bp.route('/search/')
 @jwt_required()
 def search_user():
@@ -63,7 +76,7 @@ def create_user():
     
 #Route to delete a user
 @users_bp.route('/<int:user_id>/', methods = ['DELETE'])
-@jwt_required()
+# @jwt_required()
 def delete_user(user_id):
     #get one user whose id matches API endpoint
     stmt = db.select(User).filter_by(id = user_id)

@@ -11,7 +11,7 @@ class User(db.Model):
     l_name = db.Column(db.String(15))
     date_created = db.Column(db.Date, default = date.today())
     phone = db.Column(db.String, nullable=False, unique=True)
-    type_id = db.Column(db.Integer, db.ForeignKey('user_types.id'), nullable=False)
+    type_id = db.Column(db.Integer, db.ForeignKey('user_types.id', ondelete='SET NULL'))
     personal_email = db.Column(db.String)
 
     type = db.relationship('UserType', back_populates = 'users')

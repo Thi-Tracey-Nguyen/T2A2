@@ -3,6 +3,7 @@ from init import db
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from models.user_type import UserType, UserTypeSchema
+from controllers.auth_controller import authorize_admin, authorize_employee
 from flask_jwt_extended import jwt_required
 
 
@@ -10,7 +11,11 @@ user_types_bp = Blueprint('UserTypes', __name__, url_prefix = '/user_types')
 
 #Route to return all user_types
 @user_types_bp.route('/')
+@jwt_required()
 def get_all_user_types():
+    #verify that the user is an employee
+    authorize_employee()
+
     #get all records of the UserType model
     stmt = db.select(UserType)
     user_types = db.session.scalars(stmt)
@@ -18,7 +23,11 @@ def get_all_user_types():
 
 #Route to get one user_type by id
 @user_types_bp.route('/<int:user_type_id>/')
+@jwt_required()
 def get_one_user_type(user_type_id):
+    #verify that the user is an employee
+    authorize_employee()
+
     #get one user_type whose id matches API endpoint
     stmt = db.select(UserType).filter_by(id = user_type_id)
     user_type = db.session.scalar(stmt)
@@ -31,7 +40,11 @@ def get_one_user_type(user_type_id):
 
 #Route to create new user_type
 @user_types_bp.route('/', methods = ['POST'])
+@jwt_required()
 def create_user_type():
+    #verify that the user is an admin
+    authorize_admin()
+
     #load request into UserTypeSChema to apply validation
     data = UserTypeSchema().load(request.json)
 
@@ -49,7 +62,11 @@ def create_user_type():
 
 #Route to delete a user_type
 @user_types_bp.route('/<int:user_type_id>/', methods = ['DELETE'])
+@jwt_required()
 def delete_user_type(user_type_id):
+    #verify that the user is an admin
+    authorize_admin()
+
     #get one user_type whose id matches API endpoint
     stmt = db.select(UserType).filter_by(id = user_type_id)
     user_type = db.session.scalar(stmt)
@@ -64,7 +81,11 @@ def delete_user_type(user_type_id):
 
 #Route to update user_type's info
 @user_types_bp.route('/<int:user_type_id>/', methods = ['PUT', 'PATCH'])
+@jwt_required()
 def update_user_type(user_type_id):
+    #verify that the user is an admin
+    authorize_admin()
+
     #get one user_type whose id matches API endpoint
     stmt = db.select(UserType).filter_by(id = user_type_id)
     user_type = db.session.scalar(stmt)

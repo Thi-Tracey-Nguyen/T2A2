@@ -48,44 +48,19 @@ def search_employee():
         return {'message': 'Cannot find employee with provided info'}, 404
 
 
-# #Route to get one employee's info
-# @employees_bp.route('/<int:employee_id>/')
-# def get_one_employee(employee_id):
-#     #get one employee whose id matches API endpoint
-#     stmt = db.select(Employee).filter_by(id = employee_id)
-#     employee = db.session.scalar(stmt)
-#     # check if the employee exists, if they do, return the EmployeeSchema
-#     if employee:
-#         return EmployeeSchema(exclude=['password', 'bookings']).dump(employee)
-#     #if employee with the provided id does not exist, return an error message
-#     else:
-#         return {'message': f'Cannot find employee with id {employee_id}'}, 404
+#Route to get one employee's info
+@employees_bp.route('/<int:employee_id>/')
+def get_one_employee(employee_id):
+    #get one employee whose id matches API endpoint
+    stmt = db.select(Employee).filter_by(id = employee_id)
+    employee = db.session.scalar(stmt)
+    # check if the employee exists, if they do, return the EmployeeSchema
+    if employee:
+        return EmployeeSchema(exclude=['password', 'bookings']).dump(employee)
+    #if employee with the provided id does not exist, return an error message
+    else:
+        return {'message': f'Cannot find employee with id {employee_id}'}, 404
 
-# #Route to get one employee's info by unique phone number
-# @employees_bp.route('/phone/<phone>/')
-# def get_one_employee_by_phone(phone):
-#     #has to go through users table because it is where phone number is stored
-#     #get one user whose phone number matches API endpoint
-#     stmt = db.select(User).filter_by(phone = phone)
-#     user = db.session.scalar(stmt)
-
-#     #checks if the user with the phone number exists
-#     if user:
-#         #retrieve id from the user and look it up in the employee table
-#         employee_stmt = db.select(Employee).filter_by(id = user.id)
-#         employee = db.session.scalar(employee_stmt)
-
-#         # check if the employee exists, if they do, return the ClientSchema
-#         if employee:
-#             return EmployeeSchema(exclude=['password', 'bookings']).dump(employee)
-
-#         #if employee with the provided phone number does not exist, return an error message
-#         else:
-#             return {'message': 'Cannot find employee associated with the phone number'}, 404
-
-#     #if user with the provided phone number does not exist, return an error message
-#     else:
-#         return {'message': 'Cannot find user associated with the phone number'}, 404
 
 #Route to create new employee
 @employees_bp.route('/', methods = ['POST'])

@@ -9,7 +9,7 @@ class Client(db.Model):
     password = db.Column(db.String)
 
     user = db.relationship('User', back_populates = 'client', cascade = 'all, delete')
-    pets = db.relationship('Pet', back_populates = 'client')
+    pets = db.relationship('Pet', back_populates = 'client', cascade = 'all, delete')
 
 class ClientSchema(ma.Schema):
     user = fields.Nested('UserSchema', exclude = ['client', 'employee', 'id'])

@@ -12,7 +12,7 @@ class Service(db.Model):
     duration = db.Column(db.Float, nullable=False)
     price = db.Column(db.Float, nullable=False)
 
-    bookings = db.relationship('Booking', back_populates = 'service')
+    bookings = db.relationship('Booking', back_populates = 'service', cascade = 'all, delete')
 
 class ServiceSchema(ma.Schema):
     duration = fields.Float(required=True, validate=(Range(min=0.25)))

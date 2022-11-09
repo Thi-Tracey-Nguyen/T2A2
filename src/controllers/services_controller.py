@@ -1,8 +1,7 @@
 from flask import Blueprint, request
 from init import db
-from sqlalchemy import desc
-from sqlalchemy.exc import IntegrityError
 from models.service import Service, ServiceSchema
+from controllers.auth_controller import authorize_admin
 from flask_jwt_extended import jwt_required
 
 
@@ -31,7 +30,11 @@ def get_one_service(service_id):
 
 #Route to create new service
 @services_bp.route('/', methods = ['POST'])
+@jwt_required()
 def create_service():
+    #verify that the user is an admin
+    authorize_admin()
+
     #load request into ServiceSchema to apply validation
     data = ServiceSchema().load(request.json)
 
@@ -51,7 +54,11 @@ def create_service():
 
 #Route to delete a service
 @services_bp.route('/<int:service_id>/', methods = ['DELETE'])
+@jwt_required()
 def delete_service(service_id):
+    #verify that the user is an admin
+    authorize_admin()
+
     #get one service whose id matches API endpoint
     stmt = db.select(Service).filter_by(id = service_id)
     service = db.session.scalar(stmt)
