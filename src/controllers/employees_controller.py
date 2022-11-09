@@ -1,4 +1,3 @@
-import secrets
 from flask import Blueprint, request, json
 from init import db
 from sqlalchemy.exc import IntegrityError
@@ -65,10 +64,10 @@ def get_one_employee(employee_id):
 #Route to create new employee
 @employees_bp.route('/', methods = ['POST'])
 def create_employee():
-    #function to generate random password
-    def auto_password():
-        password_length = 10
-        return secrets.token_urlsafe(password_length)
+    # #function to generate random password
+    # def auto_password():
+    #     password_length = 10
+    #     return secrets.token_urlsafe(password_length)
     #create a user with provided info first
     #load info from the request to UserSchema to apply validation methods
     data = UserSchema().load(request.json)
@@ -127,11 +126,12 @@ def update_employee(employee_id):
     #get one employee whose id matches API endpoint
     stmt = db.select(Employee).filter_by(id = employee_id)
     employee = db.session.scalar(stmt)
+    
     # check if the employee exists, if they do, update their info
     if employee:
         #load the request into the UserSchema to use validations
         #exclude unknown fileds which are in EmployeeSchema
-        UserSchema().load(request.json, partial = True, unknown=EXCLUDE)
+        UserSchema().load(request.json, partial=True, unknown=EXCLUDE)
 
         #get the id to update corresponding fields in users table
         user_stmt = db.select(User).filter_by(id = employee.id)

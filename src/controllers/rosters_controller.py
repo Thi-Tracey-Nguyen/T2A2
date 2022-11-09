@@ -4,6 +4,7 @@ from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from models.roster import Roster, RosterSchema
 from models.employee import Employee, EmployeeSchema
+from controllers.auth_controller import authorize_admin, authorize_employee
 from flask_jwt_extended import jwt_required
 from datetime import datetime
 
@@ -12,7 +13,11 @@ rosters_bp = Blueprint('Rosters', __name__, url_prefix = '/rosters')
 
 #Route to return all rosters
 @rosters_bp.route('/')
+@jwt_required()
 def get_all_rosters():
+    #verify that the user is an employee
+    authorize_employee()
+
     #get all records of the Roster model
     stmt = db.select(Roster).order_by(Roster.date)
     rosters = db.session.scalars(stmt)
@@ -20,7 +25,11 @@ def get_all_rosters():
 
 #Route to get one roster by id
 @rosters_bp.route('/<int:roster_id>/')
+@jwt_required()
 def get_one_roster(roster_id):
+    #verify that the user is an employee
+    authorize_employee()
+
     #get one roster whose id matches API endpoint
     stmt = db.select(Roster).filter_by(id = roster_id)
     roster = db.session.scalar(stmt)
@@ -65,7 +74,11 @@ def get_roster_by_employee_id(employee_id):
 
 #Route to create new roster
 @rosters_bp.route('/', methods = ['POST'])
+@jwt_required()
 def create_roster():
+    #verify that the user is an admin
+    authorize_admin()
+
     #load request data on to the schema to apply validations
     data = RosterSchema().load(request.json)
 
@@ -84,7 +97,11 @@ def create_roster():
 
 #Route to delete a roster
 @rosters_bp.route('/<int:roster_id>/', methods = ['DELETE'])
+@jwt_required()
 def delete_roster(roster_id):
+    #verify that the user is an admin
+    authorize_admin()
+
     #get one roster whose id matches API endpoint
     stmt = db.select(Roster).filter_by(id = roster_id)
     roster = db.session.scalar(stmt)
@@ -99,28 +116,27 @@ def delete_roster(roster_id):
 
 #Route to update roster's info
 @rosters_bp.route('/<int:roster_id>/', methods = ['PUT', 'PATCH'])
+@jwt_required()
 def update_roster(roster_id):
+    #verify that the user is an admin
+    authorize_admin()
+
     #get one roster whose id matches API endpoint
     stmt = db.select(Roster).filter_by(id = roster_id)
     roster = db.session.scalar(stmt)
     
     # check if the roster exists, if it does, update its info
     if roster:
-        try:
-            #load the request into RosterSchema to apply validations
-            data = RosterSchema().load(request.json)
-            #get the info from the request, if not provided, keep as it is
-            roster.service_id = data.get('service_id') or roster.service_id
-            roster.pet_id = data.get('pet_id') or roster.pet_id
-            roster.employee_id = data.get('employee_id') or roster.employee_id
-            roster.date = data.get('date') or roster.date
-            roster.time = data.get('time') or roster.time
-            roster.status = data.get('status') or roster.status
-            db.session.commit() #commit the changes
-            return RosterSchema().dump(roster)
-        #catch IntegrityError when the updated info already exist in the database
-        except IntegrityError:
-            return {'message': 'The combination of pet\'s id, date and time already exists'}
+        #load the request into RosterSchema to apply validations
+        RosterSchema().load(request.json, partial=True)
+        
+        #check if the employee is already rosted for the 
+        #get the info from the request, if not provided, keep as it is
+        roster.employee_id = request.json.get('employee_id', roster.employee_id)
+        roster.date = request.json.get('date', roster.date)
+
+        db.session.commit() #commit the changes
+        return RosterSchema().dump(roster)
 
     #if roster with the provided id does not exist, return an error message
     else:

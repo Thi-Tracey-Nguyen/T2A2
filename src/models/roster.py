@@ -12,6 +12,8 @@ class Roster(db.Model):
     employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'),
      nullable=False)
 
+    __table_args__ = (db.UniqueConstraint('employee_id', 'date'),)
+
     employee = db.relationship('Employee')
 
 class RosterSchema(ma.Schema):
@@ -40,19 +42,6 @@ class RosterSchema(ma.Schema):
 
         if not employee:
             raise ValidationError('Employee id does not exist')
-
-    #ensure one employee can't be double-rostered for the same date
-    @validates_schema
-    def validate_employee_date(self, data, **kwargs):
-        
-        #retrieve a roster where employee_id and date match input data
-        stmt = db.select(Roster).where(db.and_(
-            Roster.employee_id == data['employee_id'], Roster.date == data['date']))
-        roster = db.session.scalar(stmt)
-
-        #if such roster exists, raise an exception
-        if roster:
-            raise ValidationError('The employee is already rostered for this date')
 
 
     class Meta:
