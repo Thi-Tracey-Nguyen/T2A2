@@ -58,9 +58,9 @@ def create_app():
     def key_error(err):
         return {'Error': f'The field {err} is required'}, 400
 
-    @app.errorhandler(IntegrityError)
-    def integrity_error(err):
-        return {'message': 'Record already exists'}, 409
+    # @app.errorhandler(IntegrityError)
+    # def integrity_error(err):
+    #     return {'message': 'Record already exists'}, 409
 
     @app.errorhandler(ValidationError)
     def validation_error(err):

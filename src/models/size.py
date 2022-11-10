@@ -8,9 +8,11 @@ class Size(db.Model):
     name = db.Column(db.String(5))
     weight = db.Column(db.String(20))
 
-    pet = db.relationship('Pet', back_populates = 'size')
+    pets = db.relationship('Pet', back_populates = 'size', cascade='all, delete')
 
 class SizeSchema(ma.Schema):
+    pets = fields.List(fields.Nested('PetSchema', exclude = ['size']))
+
     class Meta:
-        fields = ('id', 'weight', 'name')
+        fields = ('id', 'weight', 'name', 'pets')
         ordered = True

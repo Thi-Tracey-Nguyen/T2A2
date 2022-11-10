@@ -15,11 +15,11 @@ class Employee(db.Model):
     password = db.Column(db.String, nullable = False)
     is_admin = db.Column(db.Boolean, default = False)
 
-    user = db.relationship('User', viewonly=True)
+    user = db.relationship('User', cascade = 'all, delete')
     bookings = db.relationship('Booking', back_populates = 'employee')
 
 class EmployeeSchema(ma.Schema):
-    user = fields.Nested('UserSchema')
+    user = fields.Nested('UserSchema', exclude = ['employee'])
     bookings = fields.List(fields.Nested('BookingSchema', exclude = ['employee']))
     is_admin = fields.String(validate = OneOf(VALID_ADMIN_STATUSES))
     password = fields.String(required=True, validate=And(

@@ -9,8 +9,7 @@ class Roster(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
-    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'),
-     nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id', ondelete='SET NULL'))
 
     __table_args__ = (db.UniqueConstraint('employee_id', 'date'),)
 

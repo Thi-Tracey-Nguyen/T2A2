@@ -10,7 +10,7 @@ class PetType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(10))
 
-    pets = db.relationship('Pet', back_populates = 'type')
+    pets = db.relationship('Pet', back_populates = 'type', cascade = 'all, delete')
 
 class PetTypeSchema(ma.Schema):
     pets = fields.List(fields.Nested('PetSchema', exclude = ['client', 'type', 'bookings']))

@@ -11,7 +11,7 @@ class Pet(db.Model):
 
     type_id = db.Column(db.Integer, db.ForeignKey('pet_types.id'), nullable=False)
     size_id = db.Column(db.Integer, db.ForeignKey('sizes.id'), nullable=False)
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'))
 
     __table_args__ = (db.UniqueConstraint('name', 'client_id', 'type_id'),)
 

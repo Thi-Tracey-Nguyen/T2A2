@@ -12,7 +12,7 @@ class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     pet_id = db.Column(db.Integer, db.ForeignKey('pets.id'), nullable=False)
-    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
+    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id', ondelete='SET NULL'))
     service_id = db.Column(db.Integer, db.ForeignKey('services.id'), nullable=False)
 
     date = db.Column(db.Date, nullable=False)

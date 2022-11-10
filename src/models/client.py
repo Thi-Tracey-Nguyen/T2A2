@@ -12,7 +12,7 @@ class Client(db.Model):
     pets = db.relationship('Pet', back_populates = 'client', cascade = 'all, delete')
 
 class ClientSchema(ma.Schema):
-    user = fields.Nested('UserSchema', exclude = ['client', 'employee', 'id'])
+    user = fields.Nested('UserSchema', exclude = ['employee', 'id'])
     pets = fields.List(fields.Nested('PetSchema', exclude = ['client']))
     password = fields.String(required=True, validate=And(
         Length(min=6, error='Password must be at least 6 characters.'),

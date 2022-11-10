@@ -8,10 +8,10 @@ class UserType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(10))
 
-    users = db.relationship('User', back_populates = 'type')
+    users = db.relationship('User', back_populates = 'type', cascade='all, delete')
 
 class UserTypeSchema(ma.Schema):
-    users = fields.List(fields.Nested('UserSchema'))
+    users = fields.List(fields.Nested('UserSchema', exclude=['type']))
 
     @validates('name')
     def validate_name(self, value):

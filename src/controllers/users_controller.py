@@ -18,7 +18,7 @@ def get_all_users():
     #get all records of the User model
     stmt = db.select(User)
     users = db.session.scalars(stmt)
-    return UserSchema(many=True).dump(users)
+    return UserSchema(many=True, exclude=['employee']).dump(users)
 
 #Route to get one user by id
 @users_bp.route('/<int:user_id>/')
@@ -28,7 +28,7 @@ def get_one_user(user_id):
     user = db.session.scalar(stmt)
     # check if the user exists, if they do, return the UserSchema
     if user:
-        return UserSchema().dump(user)
+        return UserSchema(exclude=['employee']).dump(user)
     #if user with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find user with id {user_id}'}, 404
