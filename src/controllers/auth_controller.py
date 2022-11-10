@@ -119,9 +119,9 @@ def authorize_employee_or_account_owner(args):
     token_user = db.session.scalar(token_stmt)
 
     #get the user from the provided id
-    stmt = db.select(User).where(db.and_(User.type_id == 1), db.or_(User.id == args.get('id'), (User.phone == args.get('phone'))))
+    stmt = db.select(User).where(db.and_(User.type_id == 1), db.or_(User.id == args.get('id'), 
+    (User.phone == args.get('phone'))))
     user = db.session.scalar(stmt)
-
 
     #if the id from the token does not match looked up id,
     #or the user is not an employee, abort with 401 error

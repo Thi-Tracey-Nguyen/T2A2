@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from models.employee import Employee, EmployeeSchema
 from models.user import User, UserSchema
 from flask_jwt_extended import jwt_required
-from controllers.auth_controller import authorize_admin_or_account_owner
+from controllers.auth_controller import authorize_admin_or_account_owner, authorize_admin
 from marshmallow import EXCLUDE
 from init import bcrypt
 
@@ -12,7 +12,11 @@ employees_bp = Blueprint('Employee', __name__, url_prefix = '/employees')
 
 #Route to return all employee
 @employees_bp.route('/')
+@jwt_required()
 def get_all_employee():
+    #verify that the user is an admin
+    authorize_admin()
+
     #get all records of the Employee model
     stmt = db.select(Employee)
     employees = db.session.scalars(stmt)
@@ -47,9 +51,13 @@ def search_employee():
         return {'message': 'Cannot find employee with provided info'}, 404
 
 
-#Route to get one employee's info
+#Route to get one employee's info by id
 @employees_bp.route('/<int:employee_id>/')
+@jwt_required()
 def get_one_employee(employee_id):
+    #verify the user is an admin or the owner of the account
+    authorize_admin()
+
     #get one employee whose id matches API endpoint
     stmt = db.select(Employee).filter_by(id = employee_id)
     employee = db.session.scalar(stmt)
@@ -63,13 +71,13 @@ def get_one_employee(employee_id):
 
 #Route to create new employee
 @employees_bp.route('/', methods = ['POST'])
+@jwt_required()
 def create_employee():
-    # #function to generate random password
-    # def auto_password():
-    #     password_length = 10
-    #     return secrets.token_urlsafe(password_length)
-    #create a user with provided info first
-    #load info from the request to UserSchema to apply validation methods
+    #verify the user is an admin
+    authorize_admin()
+
+    # create a user with provided info first
+    # load info from the request to UserSchema to apply validation methods
     data = UserSchema().load(request.json)
     #create a new user instance from the provided data
     user = User(
@@ -90,7 +98,7 @@ def create_employee():
         #create a new employee instance with the id from the new user
         new_employee = Employee(
             id = user.id,
-            password = auto_password(),
+            password = user.f_name[:2] + user.f_name[-2:] + user.l_name[0] + user.l_name[-1] + 'ds123!',
             email = user.f_name.lower() + '.' + user.l_name.lower() + '@dog_spa.com'
         )
 
@@ -107,7 +115,11 @@ def create_employee():
     
 #Route to delete a employee
 @employees_bp.route('/<int:employee_id>/', methods = ['DELETE'])
+@jwt_required()
 def delete_employee(employee_id):
+    #verify the user is an admin
+    authorize_admin()
+
     #get one pet whose id matches API endpoint
     stmt = db.select(Employee).filter_by(id = employee_id)
     employee = db.session.scalar(stmt)
@@ -122,7 +134,11 @@ def delete_employee(employee_id):
 
 #Route to update employee's info
 @employees_bp.route('/<int:employee_id>/', methods = ['PUT', 'PATCH'])
+@jwt_required()
 def update_employee(employee_id):
+    #verify the user is an admin or the owner of the account
+    authorize_admin()
+
     #get one employee whose id matches API endpoint
     stmt = db.select(Employee).filter_by(id = employee_id)
     employee = db.session.scalar(stmt)

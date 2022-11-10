@@ -12,12 +12,12 @@ class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     pet_id = db.Column(db.Integer, db.ForeignKey('pets.id'), nullable=False)
-    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'), nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
     service_id = db.Column(db.Integer, db.ForeignKey('services.id'), nullable=False)
 
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.Time, nullable=False)
-    status = db.Column(db.String, default = VALID_STATUSES[0], nullable=False)
+    status = db.Column(db.String, default = VALID_STATUSES[0])
     date_created = db.Column(db.Date, default = datetime.now(), nullable=False)
    
     __table_args__ = (db.UniqueConstraint('pet_id', 'date', 'time'),)
@@ -43,25 +43,18 @@ class BookingSchema(ma.Schema):
         if date_obj < dt.today():
             raise ValidationError('Booking date must be in the future')
 
-    #validate booking time is within opening hours
-    @validates('time')
-    def validate_date(self, time):
-        #convert booking time, open time and close time to python time object
-        time_obj = datetime.strptime(time, '%H:%M').time()
-        open = datetime.strptime('10:00', '%H:%M').time()
-        close = datetime.strptime('20:00', '%H:%M').time()
-        
-        #raise ValidationError if booking time is outside opening hours
-        if time_obj < open or time_obj > close:
-            raise ValidationError('Booking must be from 10am to 8pm')
-
-    #handles booking made for the same date
-    #have to use validate_schema because there are 2 arguments (date & time)
     @validates_schema
     def validate_time(self, data, **kwargs):
-        #convert booking date and time to python date and time object
+        #convert booking date and time from request, opening and closing time to python date and time object
         time_obj = datetime.strptime(data['time'], '%H:%M').time()
         date_obj = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        open = datetime.strptime('10:00', '%H:%M').time()
+        close = datetime.strptime('20:00', '%H:%M').time()
+
+
+        #raise ValidationError if booking date already passed
+        if date_obj < dt.today():
+            raise ValidationError('Booking date must be in the future')
 
         #if booking is made for the same date,
         #booking time must be in the future
@@ -69,8 +62,11 @@ class BookingSchema(ma.Schema):
             if time_obj < datetime.now().time():
                 raise ValidationError('Booking time must be in the future')
 
+        #raise ValidationError if booking time is outside opening hours
+        if time_obj < open or time_obj > close:
+            raise ValidationError('Booking must be from 10am to 8pm')
 
     class Meta:
-        fields = ('id', 'status', 'service', 'date', 'time',
+        fields = ('id', 'pet_id', 'service_id', 'status', 'service', 'date', 'time',
         'pet', 'employee', 'date_created')
         ordered = True

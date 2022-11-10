@@ -30,5 +30,5 @@ class ServiceSchema(ma.Schema):
             raise ValidationError('Service already exists')
     
     class Meta:
-        fields = ('id', 'name', 'duration', 'price')
+        fields = ('id', 'name', 'duration', 'price', 'bookings')
         ordered = True

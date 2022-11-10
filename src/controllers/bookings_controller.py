@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from models.booking import Booking, BookingSchema
 from models.employee import Employee
 from models.pet import Pet
+from controllers.auth_controller import authorize_employee
 from flask_jwt_extended import jwt_required
 
 
@@ -11,7 +12,11 @@ bookings_bp = Blueprint('Bookings', __name__, url_prefix = '/bookings')
 
 #Route to return all bookings
 @bookings_bp.route('/')
+@jwt_required()
 def get_all_bookings():
+    #verify that the user is an employee
+    authorize_employee()
+
     #get all records of the Booking model
     stmt = db.select(Booking).order_by(Booking.date)
     bookings = db.session.scalars(stmt)
@@ -42,24 +47,28 @@ def get_booking_by_status(status):
     
 #Route to create new booking
 @bookings_bp.route('/', methods = ['POST'])
+@jwt_required()
 def create_booking():
-    #get data from the request
-    data = request.json
+    #verify that the user is an employee
+    authorize_employee()
+
+    #load request on to BookingSchema to apply validations
+    data = BookingSchema().load(request.json, partial=True)
 
     #retrieve pet_id from data to check if it exists
     pet_stmt = db.select(Pet).filter_by(id = data['pet_id'])
     pet = db.session.scalar(pet_stmt)
 
-    #retrieve employee_id from data to check if they exist
-    employee_stmt = db.select(Employee).filter_by(id = data['employee_id'])
-    employee = db.session.scalar(employee_stmt)
+    # #retrieve employee_id from data to check if they exist
+    # employee_stmt = db.select(Employee).filter_by(id = data['employee_id'])
+    # employee = db.session.scalar(employee_stmt)
 
     #create a new booking instance from the provided data
     #if the pet and employee exist
-    if pet and employee:
+    if pet:
         booking = Booking(
             pet_id = data['pet_id'],
-            employee_id = data['employee_id'],
+            employee_id = data.get('employee_id'),
             date = data['date'],
             time = data['time'],
             service_id = data['service_id'],
@@ -78,12 +87,12 @@ def create_booking():
             'The combination of pet\'s id, date and time already exists'}
 
     #respond to the user if pet_id does not exist
-    elif not pet:
+    else:
         return {'message': 'Pet\'s id does not exist'}, 404
 
-    #respond to the user if employee_id does not exist
-    elif not employee:
-        return {'message': 'Employee\'s id does not exist'}, 404
+    # #respond to the user if employee_id does not exist
+    # elif not employee:
+    #     return {'message': 'Employee\'s id does not exist'}, 404
 
 #Route to delete a booking
 @bookings_bp.route('/<int:booking_id>/', methods = ['DELETE'])
@@ -102,7 +111,11 @@ def delete_booking(booking_id):
 
 #Route to update booking's info
 @bookings_bp.route('/<int:booking_id>/', methods = ['PUT', 'PATCH'])
+@jwt_required()
 def update_booking(booking_id):
+    #verify that the user is an employee
+    authorize_employee()
+
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
@@ -111,7 +124,7 @@ def update_booking(booking_id):
     if booking:
         try:
             #load the request into BookingSchema to apply validations
-            data = BookingSchema().load(request.json)
+            data = BookingSchema().load(request.json, partial=True)
             #get the info from the request, if not provided, keep as it is
             booking.service_id = data.get('service_id') or booking.service_id
             booking.pet_id = data.get('pet_id') or booking.pet_id
