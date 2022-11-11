@@ -150,17 +150,20 @@ def search_booking():
 
     #get the pet from provided info
     pet_stmt = db.select(Pet).filter_by(name = args['name'].capitalize())
-    pets = db.session.scalars(pet_stmt) #there may be more than one pet with the same name
+    pets = db.session.scalars(pet_stmt).all() #there may be more than one pet with the same name
 
     #get the client from the phone number
     client_stmt = db.select(User).filter_by(phone = args['phone'])
     client = db.session.scalar(client_stmt)
 
-    #for each pet, check if the client_id matches client_id from phone number
-    for pet in pets:
-        if pet.client_id == client.id:
-            return PetSchema(only=['client', 'bookings']).dump(pet)
+    if pets and client:
+        #for each pet, check if the client_id matches client_id from phone number
+        for pet in pets:
+            if pet.client_id == client.id:
+                return PetSchema().dump(pet)
+        return {'message': 'Pet name and/or phone number are incorrect'}, 404
 
-    #if client_id from pet does not match client_id from phone number, returns error
-    return {'message': 'Pet name and/or phone number are incorrect'}, 404
+    #if no pet or client matches provided info, return 404
+    else:
+        return {'message': 'Pet name and/or phone number are incorrect'}, 404
     

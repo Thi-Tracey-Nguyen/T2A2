@@ -144,8 +144,7 @@ def search_pet():
         for pet in pets:
             if pet.client_id == client.id:
                 return PetSchema().dump(pet)
-            else:
-                return {'message': 'Pet name and/or phone number are incorrect'}, 404
+        return {'message': 'Pet name and/or phone number are incorrect'}, 404
 
     #if no pet or client matches provided info, return 404
     else:
