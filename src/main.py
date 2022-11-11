@@ -56,9 +56,9 @@ def create_app():
     def key_error(err):
         return {'Error': f'The field {err} is required'}, 400
 
-    # @app.errorhandler(IntegrityError)
-    # def integrity_error(err):
-    #     return {'message': 'Record already exists'}, 409
+    @app.errorhandler(IntegrityError)
+    def integrity_error(err):
+        return {'message': 'Integrity Error'}, 409
 
     @app.errorhandler(ValidationError)
     def validation_error(err):
@@ -66,7 +66,7 @@ def create_app():
 
     @app.errorhandler(DataError)
     def data_error(err):
-        return {'message': 'Input data is invalid'}, 400
+        return {'message': 'Invalid input'}, 400
 
     return app
 

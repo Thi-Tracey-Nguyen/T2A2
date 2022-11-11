@@ -1,12 +1,14 @@
 from flask import Blueprint, request, abort
 from init import db
+from datetime import datetime, date as dt
 from sqlalchemy.exc import IntegrityError
 from models.booking import Booking, BookingSchema
 from models.user import User
+from models.pet import Pet
 from models.client import Client, ClientSchema
-from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking
+from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking, verify_pet_belongs_to_user_or_employee
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
+from marshmallow.exceptions import ValidationError
 
 bookings_bp = Blueprint('Bookings', __name__, url_prefix = '/bookings')
 
@@ -57,39 +59,39 @@ def get_booking_by_status(status):
 @bookings_bp.route('/', methods = ['POST'])
 @jwt_required()
 def create_booking():
+    #verify that user is an employee or owner of the pet
+    verify_pet_belongs_to_user_or_employee(request.json['pet_id'])
+
     #load request on to BookingSchema to apply validations
     data = BookingSchema().load(request.json, partial=True)
-
+    
     #retrieve pet_id from data to check if it exists
     pet_stmt = db.select(Pet).filter_by(id = data['pet_id'])
     pet = db.session.scalar(pet_stmt)
 
     #create a new booking instance from the provided data
-    #if the pet and employee exist
-    if pet:
-        booking = Booking(
-            pet_id = data['pet_id'],
-            employee_id = data.get('employee_id'),
-            date = data['date'],
-            time = data['time'],
-            service_id = data['service_id'],
-            status = request.json.get('status') #optional field -> use .get()
-        )
-        try:
-            #add the booking and commit if no conflicts
-            db.session.add(booking)
-            db.session.commit()
-            return BookingSchema().dump(booking)
+    #if the pet_id exist and the user is employee, they can make bookings for any pets
+    booking = Booking(
+        pet_id = data['pet_id'],
+        employee_id = data.get('employee_id'),
+        date = data['date'],
+        time = data['time'],
+        service_id = data['service_id'],
+        status = request.json.get('status') #optional field -> use .get()
+    )
+    try:
+        #add the booking and commit if no conflicts
+        db.session.add(booking)
+        db.session.commit()
+        return BookingSchema().dump(booking)
 
-        #catch IntegrityError if the combination of
-        #pet_id, date and time already exists
-        except IntegrityError:
-            return {'message':
-            'The combination of pet\'s id, date and time already exists'}
+    #catch IntegrityError if the combination of
+    #pet_id, date and time already exists
+    except IntegrityError:
+        return {'message':
+        'The combination of pet\'s id, date and time already exists'}
 
-    #respond to the user if pet_id does not exist
-    else:
-        return {'message': 'Pet\'s id does not exist'}, 404
+
 
 #Route to delete a booking
 @bookings_bp.route('/<int:booking_id>/', methods = ['DELETE'])
@@ -117,6 +119,34 @@ def update_booking(booking_id):
     #verify that the user is an employee or owner of the booking
     authorize_employee_or_owner_booking(booking_id)
 
+    def validate_date(date):
+        #convert booking date to python date object
+        #catch ValueError if input is invalid
+        try:
+            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            return {'message': 'Invalid input'}
+
+        #raise ValidationError if booking date already passed
+        #booking can be made for the same date though
+        if date_obj < dt.today():
+            raise ValidationError('Booking date must be in the future')
+
+    def validate_time(time):
+        #convert booking time from request, opening and closing time to python date and time object
+        #catch ValueError if input is invalid
+        try:
+            time_obj = datetime.strptime(time, '%H:%M').time()
+        except ValueError:
+            return {'message': 'Invalid input'}
+            
+        open = datetime.strptime('10:00', '%H:%M').time()
+        close = datetime.strptime('20:00', '%H:%M').time()
+
+        #raise ValidationError if booking time is outside opening hours
+        if time_obj < open or time_obj > close:
+            raise ValidationError('Booking must be from 10am to 8pm')
+
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
@@ -124,8 +154,13 @@ def update_booking(booking_id):
     # check if the booking exists, if it does, update its info
     if booking:
         try:
-            #load the request into BookingSchema to apply validations
-            data = BookingSchema().load(request.json, partial=True)
+            data = request.json
+            #validate input if provided in the request (not having this will cause TypeError)
+            if data.get('date'):
+                validate_date(data.get('date'))
+            if data.get('time'):
+                validate_time(data.get('time'))
+
             #get the info from the request, if not provided, keep as it is
             booking.service_id = data.get('service_id') or booking.service_id
             booking.pet_id = data.get('pet_id') or booking.pet_id

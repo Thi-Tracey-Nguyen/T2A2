@@ -46,8 +46,13 @@ class BookingSchema(ma.Schema):
     @validates_schema
     def validate_time(self, data, **kwargs):
         #convert booking date and time from request, opening and closing time to python date and time object
-        time_obj = datetime.strptime(data['time'], '%H:%M').time()
-        date_obj = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        #catch ValueError if input is invalid
+        try:
+            time_obj = datetime.strptime(data['time'], '%H:%M').time()
+            date_obj = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        except ValueError:
+            return {'message': "Input date and time must be in 'YYYY-MM-DD' and 'HH:MM' format"}
+
         open = datetime.strptime('10:00', '%H:%M').time()
         close = datetime.strptime('20:00', '%H:%M').time()
 

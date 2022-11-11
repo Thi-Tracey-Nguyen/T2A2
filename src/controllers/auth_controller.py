@@ -175,5 +175,21 @@ def authorize_employee_or_owner_booking(booking_id):
         pet = db.session.scalar(pet_stmt)
 
         #checks if the user_id from token matches client_id from pet
-        if user_id != pet.client_id or user.type_id != 2:
+        if user_id != pet.client_id and user.type_id != 2:
             abort(401)
+
+def verify_pet_belongs_to_user_or_employee(pet_id):
+    #get user_id from token
+    user_id = get_jwt_identity()
+
+    #get the user to access type_id
+    user_stmt = db.select(User).filter_by(id=user_id)
+    user = db.session.scalar(user_stmt)
+
+    #get the pet whose id matches input and client_id matches user_id from token
+    pet_stmt = db.select(Pet).where(db.and_(Pet.id==pet_id), (Pet.client_id==user_id))
+    pet = db.session.scalar(pet_stmt)
+
+    #if the pet does not exist and user is not employee abort with 401 response
+    if not pet and user.type_id != 2:
+        abort(401)
