@@ -11,7 +11,6 @@ from models.user_type import UserType
 from models.user import User
 from models.service import Service
 from models.booking import Booking
-from models.roster import Roster
 
 
 db_commands = Blueprint('db', __name__)
@@ -334,94 +333,6 @@ def seed_table():
     )
     ]
 
-    rosters = [
-    Roster(
-        date = '2022-12-01',
-        employee_id = 10
-    ),
-    Roster(
-        date = '2022-12-01',
-        employee_id = 11
-    ),
-    Roster(
-        date = '2022-12-01',
-        employee_id = 12
-    ),
-    Roster(
-        date = '2022-12-02',
-        employee_id = 10
-    ),
-    Roster(
-        date = '2022-12-02',
-        employee_id = 11
-    ),
-    Roster(
-        date = '2022-12-02',
-        employee_id = 12
-    ),
-    Roster(
-        date = '2022-12-03',
-        employee_id = 10
-    ),
-    Roster(
-        date = '2022-12-03',
-        employee_id = 11
-    ),
-    Roster(
-        date = '2022-12-03',
-        employee_id = 13
-    ),
-    Roster(
-        date = '2022-12-04',
-        employee_id = 12
-    ),
-    Roster(
-        date = '2022-12-04',
-        employee_id = 13
-    ),
-    Roster(
-        date = '2022-12-04',
-        employee_id = 11
-    ),
-    Roster(
-        date = '2022-12-05',
-        employee_id = 12
-    ),
-    Roster(
-        date = '2022-12-05',
-        employee_id = 13
-    ),
-    Roster(
-        date = '2022-12-05',
-        employee_id = 10
-    ),
-    Roster(
-        date = '2022-12-06',
-        employee_id = 10
-    ),
-    Roster(
-        date = '2022-12-06',
-        employee_id = 11
-    ),
-    Roster(
-        date = '2022-12-06',
-        employee_id = 13
-    ),
-    Roster(
-        date = '2022-12-07',
-        employee_id = 12
-    ),
-    Roster(
-        date = '2022-12-07',
-        employee_id = 13
-    ),
-    Roster(
-        date = '2022-12-07',
-        employee_id = 11
-    ),
-    ]
-
     db.session.add_all(bookings)
-    db.session.add_all(rosters)
     db.session.commit()
     print('Table seeded!')
