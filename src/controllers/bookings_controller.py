@@ -1,11 +1,11 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, abort
 from init import db
 from sqlalchemy.exc import IntegrityError
 from models.booking import Booking, BookingSchema
 from models.user import User
 from models.pet import Pet, PetSchema
-from controllers.auth_controller import authorize_employee
-from flask_jwt_extended import jwt_required
+from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 bookings_bp = Blueprint('Bookings', __name__, url_prefix = '/bookings')
@@ -24,7 +24,11 @@ def get_all_bookings():
 
 #Route to get one booking by id
 @bookings_bp.route('/<int:booking_id>/')
+@jwt_required()
 def get_one_booking(booking_id):
+    #verify that the user is an employee or owner of the booking
+    authorize_employee_or_owner_booking(booking_id)
+
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
@@ -37,7 +41,11 @@ def get_one_booking(booking_id):
 
 #Route to get bookings by status
 @bookings_bp.route('/<status>/')
+@jwt_required()
 def get_booking_by_status(status):
+    #verify that the user is an employee
+    authorize_employee()
+
     #get all bookings whose status matches API endpoint
     stmt = db.select(Booking).filter_by(status=status.capitalize())
     bookings = db.session.scalars(stmt)
@@ -49,19 +57,12 @@ def get_booking_by_status(status):
 @bookings_bp.route('/', methods = ['POST'])
 @jwt_required()
 def create_booking():
-    #verify that the user is an employee
-    authorize_employee()
-
     #load request on to BookingSchema to apply validations
     data = BookingSchema().load(request.json, partial=True)
 
     #retrieve pet_id from data to check if it exists
     pet_stmt = db.select(Pet).filter_by(id = data['pet_id'])
     pet = db.session.scalar(pet_stmt)
-
-    # #retrieve employee_id from data to check if they exist
-    # employee_stmt = db.select(Employee).filter_by(id = data['employee_id'])
-    # employee = db.session.scalar(employee_stmt)
 
     #create a new booking instance from the provided data
     #if the pet and employee exist
@@ -90,13 +91,13 @@ def create_booking():
     else:
         return {'message': 'Pet\'s id does not exist'}, 404
 
-    # #respond to the user if employee_id does not exist
-    # elif not employee:
-    #     return {'message': 'Employee\'s id does not exist'}, 404
-
 #Route to delete a booking
 @bookings_bp.route('/<int:booking_id>/', methods = ['DELETE'])
+@jwt_required()
 def delete_booking(booking_id):
+    #verify that the user is an employee or owner of the booking
+    authorize_employee_or_owner_booking(booking_id)
+
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
@@ -113,8 +114,8 @@ def delete_booking(booking_id):
 @bookings_bp.route('/<int:booking_id>/', methods = ['PUT', 'PATCH'])
 @jwt_required()
 def update_booking(booking_id):
-    #verify that the user is an employee
-    authorize_employee()
+    #verify that the user is an employee or owner of the booking
+    authorize_employee_or_owner_booking(booking_id)
 
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
@@ -145,11 +146,17 @@ def update_booking(booking_id):
 #search booking with pet's name and client's phone
 #Both have to be correct for it to work
 @bookings_bp.route('/search/')
+@jwt_required()
 def search_booking():
     args = request.args
+    user_id = get_jwt_identity()
+
+    #get the user from user_id to access type_id
+    token_user_stmt = db.select(User).filter_by(id=user_id)
+    token_user = db.session.scalar(token_user_stmt)
 
     #get the pet from provided info
-    pet_stmt = db.select(Pet).filter_by(name = args['name'].capitalize())
+    pet_stmt = db.select(Pet).filter_by(name = args.get('name').capitalize())
     pets = db.session.scalars(pet_stmt).all() #there may be more than one pet with the same name
 
     #get the client from the phone number
@@ -159,8 +166,10 @@ def search_booking():
     if pets and client:
         #for each pet, check if the client_id matches client_id from phone number
         for pet in pets:
-            if pet.client_id == client.id:
+            if pet.client_id == client.id == user_id and token_user.type_id == 2:
                 return PetSchema().dump(pet)
+            elif token_user.type_id != 2 or user_id != pet.client_id or user_id != client.id:
+                abort(401)
         return {'message': 'Pet name and/or phone number are incorrect'}, 404
 
     #if no pet or client matches provided info, return 404

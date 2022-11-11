@@ -4,9 +4,11 @@ from sqlalchemy.exc import IntegrityError
 from models.employee import Employee
 from models.user import User, UserSchema
 from models.client import Client, ClientSchema
+from models.booking import Booking
+from models.pet import Pet
 from datetime import timedelta
 from marshmallow import EXCLUDE
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, get_jwt_identity
 
 auth_bp = Blueprint('auth', __name__, url_prefix = '/auth')
 
@@ -136,7 +138,7 @@ def authorize_admin_or_account_owner(args):
     #extract the user identity from the token
     user_id = get_jwt_identity()
 
-    #get employee from the token 
+    #get employee from the token
     token_stmt = db.select(Employee).filter_by(id = user_id)
     token_user = db.session.scalar(token_stmt)
 
@@ -145,6 +147,7 @@ def authorize_admin_or_account_owner(args):
     user = db.session.scalar(stmt)
 
     #if the id from the token does not match looked up id,
+    #if the user is not employee, token_user is None
     #or the user is not an admin, abort with 401 error
     try:
         if  not token_user or (not user.id == user_id and token_user.is_admin is False):
@@ -152,3 +155,25 @@ def authorize_admin_or_account_owner(args):
     except AttributeError:
         return {'message': 'Cannot find employee with provided info'}, 404
 
+#verify that the user is an employee or booking's owner
+def authorize_employee_or_owner_booking(booking_id):
+    #get user_id from jwt token
+    user_id = get_jwt_identity()
+
+    #get type_id from the user to check if they are an employee
+    user_stmt = db.select(User).filter_by(id=user_id)
+    user = db.session.scalar(user_stmt)
+
+    #get pet_id from the booking_id
+    booking_stmt = db.select(Booking).filter_by(id=booking_id)
+    booking = db.session.scalar(booking_stmt)
+
+    #if booking_id exists
+    if booking:
+        #get client_id from pet_id
+        pet_stmt = db.select(Pet).filter_by(id=booking.pet_id)
+        pet = db.session.scalar(pet_stmt)
+
+        #checks if the user_id from token matches client_id from pet
+        if user_id != pet.client_id or user.type_id != 2:
+            abort(401)
