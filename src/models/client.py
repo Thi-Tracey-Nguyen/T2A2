@@ -20,5 +20,5 @@ class ClientSchema(ma.Schema):
     ))
 
     class Meta:
-        fields = ('id', 'user', 'pets', 'password')
+        fields = ('id', 'user', 'pets')
         ordered = True

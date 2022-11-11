@@ -3,7 +3,7 @@ from init import db
 from sqlalchemy.exc import IntegrityError
 from models.booking import Booking, BookingSchema
 from models.user import User
-from models.pet import Pet, PetSchema
+from models.client import Client, ClientSchema
 from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -143,8 +143,7 @@ def update_booking(booking_id):
     else:
         return {'message': f'Cannot find booking with id {booking_id}'}, 404
 
-#search booking with pet's name and client's phone
-#Both have to be correct for it to work
+#search booking with client's phone
 @bookings_bp.route('/search/')
 @jwt_required()
 def search_booking():
@@ -155,24 +154,18 @@ def search_booking():
     token_user_stmt = db.select(User).filter_by(id=user_id)
     token_user = db.session.scalar(token_user_stmt)
 
-    #get the pet from provided info
-    pet_stmt = db.select(Pet).filter_by(name = args.get('name').capitalize())
-    pets = db.session.scalars(pet_stmt).all() #there may be more than one pet with the same name
+    #get the user from the phone number because phone is stored in users table
+    user_stmt = db.select(User).filter_by(phone = args['phone'])
+    user = db.session.scalar(user_stmt)
 
-    #get the client from the phone number
-    client_stmt = db.select(User).filter_by(phone = args['phone'])
+    #get the client from the user
+    client_stmt = db.select(Client).filter_by(id=user.id)
     client = db.session.scalar(client_stmt)
 
-    if pets and client:
-        #for each pet, check if the client_id matches client_id from phone number
-        for pet in pets:
-            if pet.client_id == client.id == user_id and token_user.type_id == 2:
-                return PetSchema().dump(pet)
-            elif token_user.type_id != 2 or user_id != pet.client_id or user_id != client.id:
-                abort(401)
-        return {'message': 'Pet name and/or phone number are incorrect'}, 404
-
-    #if no pet or client matches provided info, return 404
-    else:
-        return {'message': 'Pet name and/or phone number are incorrect'}, 404
+    if client and (user_id == client.id or token_user.type_id == 2):
+        return ClientSchema().dump(client)
+    elif not client:
+        return {'message': 'Phone number not found'}, 404
+    elif user_id != client.id or token_user.type_id != 2:
+        abort(401)
     
