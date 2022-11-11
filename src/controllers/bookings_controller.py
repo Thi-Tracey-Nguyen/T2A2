@@ -2,8 +2,8 @@ from flask import Blueprint, request
 from init import db
 from sqlalchemy.exc import IntegrityError
 from models.booking import Booking, BookingSchema
-from models.employee import Employee
-from models.pet import Pet
+from models.user import User
+from models.pet import Pet, PetSchema
 from controllers.auth_controller import authorize_employee
 from flask_jwt_extended import jwt_required
 
@@ -141,3 +141,26 @@ def update_booking(booking_id):
     #if booking with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find booking with id {booking_id}'}, 404
+
+#search booking with pet's name and client's phone
+#Both have to be correct for it to work
+@bookings_bp.route('/search/')
+def search_booking():
+    args = request.args
+
+    #get the pet from provided info
+    pet_stmt = db.select(Pet).filter_by(name = args['name'].capitalize())
+    pets = db.session.scalars(pet_stmt) #there may be more than one pet with the same name
+
+    #get the client from the phone number
+    client_stmt = db.select(User).filter_by(phone = args['phone'])
+    client = db.session.scalar(client_stmt)
+
+    #for each pet, check if the client_id matches client_id from phone number
+    for pet in pets:
+        if pet.client_id == client.id:
+            return PetSchema(only=['client', 'bookings']).dump(pet)
+
+    #if client_id from pet does not match client_id from phone number, returns error
+    return {'message': 'Pet name and/or phone number are incorrect'}, 404
+    

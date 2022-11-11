@@ -13,7 +13,7 @@ class User(db.Model):
     phone = db.Column(db.String, nullable=False, unique=True)
     personal_email = db.Column(db.String)
 
-    type_id = db.Column(db.Integer, db.ForeignKey('user_types.id', nullable=False))
+    type_id = db.Column(db.Integer, db.ForeignKey('user_types.id'))
     
     type = db.relationship('UserType', back_populates = 'users')
     client = db.relationship('Client', back_populates = 'user', cascade = 'all, delete')

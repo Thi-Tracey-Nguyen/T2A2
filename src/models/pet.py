@@ -27,5 +27,5 @@ class PetSchema(ma.Schema):
     bookings = fields.List(fields.Nested('BookingSchema', exclude = ['pet']))
 
     class Meta:
-        fields = ('id', 'name', 'breed', 'year', 'type', 'size', 'client', 'bookings')
+        fields = ('id', 'name', 'breed', 'year', 'type', 'size', 'client', 'bookings', 'type_id', 'size_id', 'client_id')
         ordered = True

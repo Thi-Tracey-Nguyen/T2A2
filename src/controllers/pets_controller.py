@@ -61,7 +61,7 @@ def create_pet():
     #to avoid crashing the program
     pet = Pet(
         name = data['name'].capitalize(),
-        breed = request.json.get('breed').capitalize(), 
+        breed = request.json.get('breed'), 
         client_id = data['client_id'],
         year = data['year'],
         size_id = data['size_id'],
@@ -73,7 +73,7 @@ def create_pet():
         db.session.commit()
 
         #respond to the user
-        return PetSchema(exclude = ['size_id', 'type_id']).dump(pet), 201
+        return PetSchema().dump(pet), 201
 
     #catch IntegrityError if the same pet name already exists with the same client's number
     except IntegrityError:
@@ -123,3 +123,31 @@ def update_pet(pet_id):
     #if pet with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find pet with id {pet_id}'}, 404
+
+
+#search pet with pet's name and client's phone
+#Both have to be correct for it to work
+@pets_bp.route('/search/')
+def search_pet():
+    args = request.args
+
+    #get the pet from provided info
+    pet_stmt = db.select(Pet).filter_by(name = args['name'].capitalize())
+    pets = db.session.scalars(pet_stmt).all() #there may be more than one pet with the same name
+
+    #get the client from the phone number
+    client_stmt = db.select(User).filter_by(phone = args['phone'])
+    client = db.session.scalar(client_stmt)
+
+    if pets and client:
+        #for each pet, check if the client_id matches client_id from phone number
+        for pet in pets:
+            if pet.client_id == client.id:
+                return PetSchema().dump(pet)
+            else:
+                return {'message': 'Pet name and/or phone number are incorrect'}, 404
+
+    #if no pet or client matches provided info, return 404
+    else:
+        return {'message': 'Pet name and/or phone number are incorrect'}, 404
+    
