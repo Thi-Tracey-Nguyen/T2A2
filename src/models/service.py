@@ -17,6 +17,7 @@ class Service(db.Model):
 class ServiceSchema(ma.Schema):
     duration = fields.Float(required=True, validate=(Range(min=0.25)))
     price = fields.Float(required=True, validate=(Range(min=20)))
+    bookings = fields.List(fields.Nested('BookingSchema', exclude=['service']))
 
     @validates('name')
     def validate_name(self, value):

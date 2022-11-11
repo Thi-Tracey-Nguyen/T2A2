@@ -17,10 +17,14 @@ class Employee(db.Model):
 
     user = db.relationship('User', cascade = 'all, delete')
     bookings = db.relationship('Booking', back_populates = 'employee')
+    rosters = db.relationship('Roster', back_populates = 'employee', cascade = 'all, delete')
 
 class EmployeeSchema(ma.Schema):
     user = fields.Nested('UserSchema', exclude = ['employee'])
+    rosters = fields.List(fields.Nested('RosterSchema', exclude = ['employee']))
     bookings = fields.List(fields.Nested('BookingSchema', exclude = ['employee']))
+
+    
     is_admin = fields.String(validate = OneOf(VALID_ADMIN_STATUSES))
     password = fields.String(required=True, validate=And(
         Length(min=6, error='Password must be at least 6 characters.'),
@@ -28,6 +32,6 @@ class EmployeeSchema(ma.Schema):
     ))
 
     class Meta:
-        fields = ('id', 'user', 'password', 'email', 'is_admin', 'bookings')
+        fields = ('id', 'user', 'password', 'email', 'is_admin', 'bookings', 'rosters')
         ordered = True
     

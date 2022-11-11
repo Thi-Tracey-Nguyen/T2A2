@@ -9,11 +9,11 @@ class Roster(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
-    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id', ondelete='SET NULL'))
+    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
 
     __table_args__ = (db.UniqueConstraint('employee_id', 'date'),)
 
-    employee = db.relationship('Employee')
+    employee = db.relationship('Employee', back_populates = 'rosters')
 
 class RosterSchema(ma.Schema):
     employee = fields.Nested('EmployeeSchema', only = ['user'])
