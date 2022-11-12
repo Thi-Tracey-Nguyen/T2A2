@@ -6,7 +6,7 @@ from models.booking import Booking, BookingSchema, validate_date_time, validate_
 from models.user import User
 from models.pet import Pet
 from models.client import Client, ClientSchema
-from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking, verify_pet_belongs_to_user_or_employee
+from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking, authorize_employee_or_pet_owner
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow.exceptions import ValidationError
 
@@ -60,7 +60,7 @@ def get_booking_by_status(status):
 @jwt_required()
 def create_booking():
     #verify that user is an employee or owner of the pet
-    verify_pet_belongs_to_user_or_employee(request.json['pet_id'])
+    authorize_employee_or_pet_owner(request.json['pet_id'])
 
     # #load request on to BookingSchema to apply validations
     data = BookingSchema().load(request.json, partial=True)

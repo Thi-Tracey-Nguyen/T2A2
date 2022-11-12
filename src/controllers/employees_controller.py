@@ -96,10 +96,13 @@ def create_employee():
         stmt = db.select(User).filter_by(phone = data['phone'])
         user = db.session.scalar(stmt)
 
+        #auto password, employee will have to change it after
+        auto_password = user.f_name[:2] + user.f_name[-2:] + user.l_name[0] + user.l_name[-1] + 'ds123!'
+
         #create a new employee instance with the id from the new user
         new_employee = Employee(
             id = user.id,
-            password = user.f_name[:2] + user.f_name[-2:] + user.l_name[0] + user.l_name[-1] + 'ds123!',
+            password = bcrypt.create_password_hash(auto_password).decode('utf-8'),
             email = user.f_name.lower() + '.' + user.l_name.lower() + '@dog_spa.com',
             is_admin = data.get('is_admin')
         )

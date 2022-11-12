@@ -112,7 +112,7 @@ def authorize_employee():
         abort(401)
 
 #this function is used when accessing and editing client's info
-def authorize_employee_or_account_owner(args):
+def authorize_employee_or_account_owner_search(args):
     #extract the user identity from the token
     user_id = get_jwt_identity()
 
@@ -121,18 +121,40 @@ def authorize_employee_or_account_owner(args):
     token_user = db.session.scalar(token_stmt)
 
     #get the user from the provided id
-    stmt = db.select(User).where(db.and_(User.type_id == 1), db.or_(User.id == args.get('id'), 
-    (User.phone == args.get('phone'))))
+    stmt = db.select(User).where(db.and_(User.type_id == 1),(User.phone == args.get('phone')))
     user = db.session.scalar(stmt)
+
+    #if phone does not exist or exists but does not belong to a client
+    if not user:
+        return {'message': 'Cannot find client with provided info'}, 404
 
     #if the id from the token does not match looked up id,
     #or the user is not an employee, abort with 401 error
-    try:
-        if not user.id == user_id and not token_user.type_id == 2:
-            abort(401)
-    except AttributeError:
+    elif not user or (not user.id == user_id and not token_user.type_id == 2):
+        abort(401)
+
+#this function is used when accessing and editing client's info
+def authorize_employee_or_account_owner_id(client_id):
+    #extract the user identity from the token
+    user_id = get_jwt_identity()
+
+    #get user from the token (to access type_id later)
+    token_stmt = db.select(User).filter_by(id = user_id)
+    token_user = db.session.scalar(token_stmt)
+
+    #get the user from the provided id
+    stmt = db.select(Client).filter_by(id = client_id)
+    client = db.session.scalar(stmt)
+
+    #if id does not exist or exists but not a client
+    if not client:
         return {'message': 'Cannot find client with provided info'}, 404
 
+    #if the id from the token does not match looked up id,
+    #or the user is not an employee, abort with 401 error
+    elif not client or (not client.id == user_id and not token_user.type_id == 2):
+        abort(401)
+    
 #this function is used when accessing and editing an employee's info
 def authorize_admin_or_account_owner_search(args):
     #extract the user identity from the token
@@ -155,6 +177,7 @@ def authorize_admin_or_account_owner_search(args):
     except AttributeError:
         return {'message': 'Cannot find employee with provided info'}, 404
 
+#This function is used in employee routes
 def authorize_admin_or_account_owner_id(employee_id):
     #extract the user identity from the token
     user_id = get_jwt_identity()
@@ -176,7 +199,7 @@ def authorize_admin_or_account_owner_id(employee_id):
     except AttributeError:
         return {'message': 'Cannot find employee with provided info'}, 404
 
-#verify that the user is an employee or booking's owner
+#verify that the user is an employee or booking's owner - used in booking routes
 def authorize_employee_or_owner_booking(booking_id):
     #get user_id from jwt token
     user_id = get_jwt_identity()
@@ -199,7 +222,8 @@ def authorize_employee_or_owner_booking(booking_id):
         if user_id != pet.client_id and user.type_id != 2:
             abort(401)
 
-def verify_pet_belongs_to_user_or_employee(pet_id):
+#this function is used in pet routes
+def authorize_employee_or_pet_owner(pet_id):
     #get user_id from token
     user_id = get_jwt_identity()
 
@@ -208,9 +232,16 @@ def verify_pet_belongs_to_user_or_employee(pet_id):
     user = db.session.scalar(user_stmt)
 
     #get the pet whose id matches input and client_id matches user_id from token
-    pet_stmt = db.select(Pet).where(db.and_(Pet.id==pet_id), (Pet.client_id==user_id))
+    pet_stmt = db.select(Pet).where(db.and_(Pet.id==pet_id))
     pet = db.session.scalar(pet_stmt)
 
-    #if the pet does not exist and user is not employee abort with 401 response
-    if not pet and user.type_id != 2:
+    #if the pet_id does not exist:
+    if not pet:
+        return {'message': 'Cannot find pet with provided info'}, 404
+
+    #if the pet's client_id is different from user_id and user is not employee abort with 401 response
+    if pet.client_id != user_id and user.type_id != 2:
         abort(401)
+
+
+
