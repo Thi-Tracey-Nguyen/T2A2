@@ -84,6 +84,7 @@ def create_employee():
         f_name = data['f_name'],
         l_name = data['l_name'],
         phone = data['phone'],
+        personal_email = data.get('personal_email'),
         type_id = 2 #type_id for employee
     )
     #add user to the database if no conflicts
@@ -99,7 +100,8 @@ def create_employee():
         new_employee = Employee(
             id = user.id,
             password = user.f_name[:2] + user.f_name[-2:] + user.l_name[0] + user.l_name[-1] + 'ds123!',
-            email = user.f_name.lower() + '.' + user.l_name.lower() + '@dog_spa.com'
+            email = user.f_name.lower() + '.' + user.l_name.lower() + '@dog_spa.com',
+            is_admin = data.get('is_admin')
         )
 
         #add the new employee to the database and commit
