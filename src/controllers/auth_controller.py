@@ -96,7 +96,7 @@ def authorize_admin():
     employee = db.session.scalar(stmt)
 
     #if the employee is not admin, abort with 401 error
-    if not employee.is_admin:
+    if not employee or employee.is_admin is False:
         abort(401)
 
 def authorize_employee():
@@ -134,7 +134,28 @@ def authorize_employee_or_account_owner(args):
         return {'message': 'Cannot find client with provided info'}, 404
 
 #this function is used when accessing and editing an employee's info
-def authorize_admin_or_account_owner(args):
+def authorize_admin_or_account_owner_search(args):
+    #extract the user identity from the token
+    user_id = get_jwt_identity()
+
+    #get employee from the token
+    token_stmt = db.select(Employee).filter_by(id = user_id)
+    token_user = db.session.scalar(token_stmt)
+
+    #get the user from the provided phone
+    stmt = db.select(User).filter_by(phone = args.get('phone'))
+    user = db.session.scalar(stmt)
+
+    #if the id from the token does not match looked up id,
+    #if the user is not employee, token_user is None
+    #or the user is not an admin, abort with 401 error
+    try:
+        if  not token_user or (not user.id == user_id and token_user.is_admin is False):
+                abort(401)
+    except AttributeError:
+        return {'message': 'Cannot find employee with provided info'}, 404
+
+def authorize_admin_or_account_owner_id(employee_id):
     #extract the user identity from the token
     user_id = get_jwt_identity()
 
@@ -143,7 +164,7 @@ def authorize_admin_or_account_owner(args):
     token_user = db.session.scalar(token_stmt)
 
     #get the user from the provided id
-    stmt = db.select(User).where(db.or_(User.id == args.get('id'), (User.phone == args.get('phone'))))
+    stmt = db.select(User).filter_by(id = employee_id)
     user = db.session.scalar(stmt)
 
     #if the id from the token does not match looked up id,

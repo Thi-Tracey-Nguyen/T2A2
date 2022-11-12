@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from models.employee import Employee, EmployeeSchema
 from models.user import User, UserSchema
 from flask_jwt_extended import jwt_required
-from controllers.auth_controller import authorize_admin_or_account_owner, authorize_admin
+from controllers.auth_controller import authorize_admin_or_account_owner_search, authorize_admin, authorize_admin_or_account_owner_id
 from marshmallow import EXCLUDE
 from init import bcrypt
 
@@ -22,19 +22,19 @@ def get_all_employee():
     employees = db.session.scalars(stmt)
     return EmployeeSchema(many=True, exclude=['password', 'bookings']).dump(employees)
 
-#Route to get one employee's info by phone or id
+#Route to get one employee's info by phone
 @employees_bp.route('/search/')
 @jwt_required()
 def search_employee():
     args = request.args
    
     #verify the user is an admin or the owner of the account
-    authorize_admin_or_account_owner(args)
+    authorize_admin_or_account_owner_search(args)
 
     #get one user whose id matches API endpoint
-    #user.type_id == 1 to ensure user is a client
+    #user.type_id == 2 to ensure user is an employee
     #have to search in the users table because it is where the info is stored
-    stmt = db.select(User).where(db.and_(User.type_id==2), db.or_(User.id==args.get('id'), User.phone==args.get('phone')))
+    stmt = db.select(User).where(db.and_(User.type_id==2), User.phone==args.get('phone'))
     user = db.session.scalar(stmt)
 
     #if the user exists user the user id to retrieve the client
@@ -56,7 +56,7 @@ def search_employee():
 @jwt_required()
 def get_one_employee(employee_id):
     #verify the user is an admin or the owner of the account
-    authorize_admin()
+    authorize_admin_or_account_owner_id(employee_id)
 
     #get one employee whose id matches API endpoint
     stmt = db.select(Employee).filter_by(id = employee_id)
@@ -139,7 +139,7 @@ def delete_employee(employee_id):
 @jwt_required()
 def update_employee(employee_id):
     #verify the user is an admin or the owner of the account
-    authorize_admin()
+    authorize_admin_or_account_owner_id(employee_id)
 
     #get one employee whose id matches API endpoint
     stmt = db.select(Employee).filter_by(id = employee_id)
@@ -160,14 +160,19 @@ def update_employee(employee_id):
         user.f_name = request.json.get('f_name', user.f_name)
         user.l_name = request.json.get('l_name', user.l_name)
         user.phone = request.json.get('phone', user.phone)
+        user.personal_email = request.json.get('personal_email', user.personal_email)
         
         #to update password, load request into EmployeeSchema to apply validations
         EmployeeSchema().load(request.json, partial = True, unknown = EXCLUDE)
 
         #handles password in the request
-        # employee.password = bcrypt.generate_password_hash(request.json.get('password', employee.password)).decode('utf8')
+        if request.json.get('password'):
+            employee.password = bcrypt.generate_password_hash(request.json.get('password', employee.password)).decode('utf8')
 
-        employee.is_admin = json.loads(request.json.get('is_admin', str(employee.is_admin)).lower())
+        #only admin can update 'is_admin' field
+        if request.json.get('is_admin'):
+            authorize_admin()
+            employee.is_admin = json.loads(request.json.get('is_admin', str(employee.is_admin)).lower())
 
         #commit the changes and response to the user
         db.session.commit()
