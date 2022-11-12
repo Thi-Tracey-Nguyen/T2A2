@@ -1,8 +1,8 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, request, abort, json
 from init import db
 from datetime import datetime, date as dt
 from sqlalchemy.exc import IntegrityError
-from models.booking import Booking, BookingSchema
+from models.booking import Booking, BookingSchema, validate_date_time, validate_date, validate_time
 from models.user import User
 from models.pet import Pet
 from models.client import Client, ClientSchema
@@ -62,8 +62,11 @@ def create_booking():
     #verify that user is an employee or owner of the pet
     verify_pet_belongs_to_user_or_employee(request.json['pet_id'])
 
-    #load request on to BookingSchema to apply validations
+    # #load request on to BookingSchema to apply validations
     data = BookingSchema().load(request.json, partial=True)
+
+    #validate booking date and time have not passed
+    validate_date_time(data)
     
     #retrieve pet_id from data to check if it exists
     pet_stmt = db.select(Pet).filter_by(id = data['pet_id'])
@@ -91,8 +94,6 @@ def create_booking():
         return {'message':
         'The combination of pet\'s id, date and time already exists'}
 
-
-
 #Route to delete a booking
 @bookings_bp.route('/<int:booking_id>/', methods = ['DELETE'])
 @jwt_required()
@@ -103,6 +104,7 @@ def delete_booking(booking_id):
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
+
     # check if the booking exists, if they do, delete them from the database
     if booking:
         db.session.delete(booking)
@@ -119,42 +121,18 @@ def update_booking(booking_id):
     #verify that the user is an employee or owner of the booking
     authorize_employee_or_owner_booking(booking_id)
 
-    def validate_date(date):
-        #convert booking date to python date object
-        #catch ValueError if input is invalid
-        try:
-            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
-        except ValueError:
-            return {'message': 'Invalid input'}
-
-        #raise ValidationError if booking date already passed
-        #booking can be made for the same date though
-        if date_obj < dt.today():
-            raise ValidationError('Booking date must be in the future')
-
-    def validate_time(time):
-        #convert booking time from request, opening and closing time to python date and time object
-        #catch ValueError if input is invalid
-        try:
-            time_obj = datetime.strptime(time, '%H:%M').time()
-        except ValueError:
-            return {'message': 'Invalid input'}
-            
-        open = datetime.strptime('10:00', '%H:%M').time()
-        close = datetime.strptime('20:00', '%H:%M').time()
-
-        #raise ValidationError if booking time is outside opening hours
-        if time_obj < open or time_obj > close:
-            raise ValidationError('Booking must be from 10am to 8pm')
-
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
     
+    data = request.json
+
+    #load status from the request to the Schema for validation
+    BookingSchema().load(request.json)
+
     # check if the booking exists, if it does, update its info
     if booking:
         try:
-            data = request.json
             #validate input if provided in the request (not having this will cause TypeError)
             if data.get('date'):
                 validate_date(data.get('date'))
@@ -172,7 +150,7 @@ def update_booking(booking_id):
             return BookingSchema().dump(booking)
         #catch IntegrityError when the updated info already exist in the database
         except IntegrityError:
-            return {'message': 'The combination of pet\'s id, date and time already exists'}
+            return {'message': 'The combination of pet\'s id, date and time already exists, or invalid pet and/or service id'}
 
     #if booking with the provided id does not exist, return an error message
     else:
