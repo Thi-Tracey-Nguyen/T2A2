@@ -121,8 +121,8 @@ def create_client():
 @clients_bp.route('/<int:client_id>/', methods = ['DELETE'])
 @jwt_required()
 def delete_client(client_id):
-    #verify the user is an employee
-    authorize_employee()
+    #verify the user is an employee or account owner
+    authorize_employee_or_account_owner_id(client_id)
 
     #get one pet whose id matches API endpoint
     stmt = db.select(Client).filter_by(id = client_id)
@@ -165,7 +165,7 @@ def update_client(client_id):
         user.personal_email = data.get('personal_email', user.personal_email)
         
         #to update password, load request into ClientSchema to apply validations
-        ClientSchema().load(request.json, unknown = EXCLUDE)
+        ClientSchema().load(request.json, partial=True, unknown=EXCLUDE)
 
         #handles password in the request
         if request.json.get('password'):

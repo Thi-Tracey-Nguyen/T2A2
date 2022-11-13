@@ -1,9 +1,9 @@
 from flask import Blueprint, request, json
-from init import db
+from init import db, bcrypt
 from sqlalchemy.exc import IntegrityError
 from models.employee import Employee, EmployeeSchema
 from models.user import User, UserSchema
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from controllers.auth_controller import authorize_admin_or_account_owner_search, authorize_admin, authorize_admin_or_account_owner_id
 from marshmallow import EXCLUDE
 from init import bcrypt
@@ -77,8 +77,11 @@ def create_employee():
     authorize_admin()
 
     # create a user with provided info first
-    # load info from the request to UserSchema to apply validation methods
-    data = UserSchema().load(request.json)
+    # load the request to UserSchema to apply validation methods
+    data = UserSchema().load(request.json, unknown=EXCLUDE)
+
+    #load the request to EmployeeSchema to validate 'is_admin'
+    EmployeeSchema().load(request.json, unknown=EXCLUDE, partial=True)
     #create a new user instance from the provided data
     user = User(
         f_name = data['f_name'],
@@ -102,13 +105,17 @@ def create_employee():
         #create a new employee instance with the id from the new user
         new_employee = Employee(
             id = user.id,
-            password = bcrypt.create_password_hash(auto_password).decode('utf-8'),
+            password = bcrypt.generate_password_hash(auto_password).decode('utf-8'),
             email = user.f_name.lower() + '.' + user.l_name.lower() + '@dog_spa.com',
-            is_admin = data.get('is_admin')
+            is_admin = json.loads(request.json.get('is_admin'))
         )
 
         #add the new employee to the database and commit
         db.session.add(new_employee)
+
+        # if data.get('is_admin'):
+        #     new_employee.is_admin = data.get('is_admin')
+
         db.session.commit()
 
         #respond to the user
@@ -171,11 +178,29 @@ def update_employee(employee_id):
         #handles password in the request
         if request.json.get('password'):
             employee.password = bcrypt.generate_password_hash(request.json.get('password', employee.password)).decode('utf8')
+        
+        def check_if_admin():
+            #extract the employee identity from the token
+            employee_id = get_jwt_identity() 
+
+            #retrieve the employee from the id
+            stmt = db.select(Employee).filter_by(id = employee_id)
+            employee = db.session.scalar(stmt)
+
+            #return if the user is admin
+            return employee.is_admin
 
         #only admin can update 'is_admin' field
-        if request.json.get('is_admin'):
-            authorize_admin()
+        if request.json.get('is_admin') and not check_if_admin():
+            return {'message': "Only admin can update 'is_admin' field"}, 401
+        elif request.json.get('is_admin') and check_if_admin():
             employee.is_admin = json.loads(request.json.get('is_admin', str(employee.is_admin)).lower())
+        
+        #only admin can update 'email' field
+        if request.json.get('email') and not check_if_admin():
+            return {'message': "Only admin can update 'email' field"}, 401
+        elif request.json.get('email') and check_if_admin():
+            employee.email = request.json.get('email')
 
         #commit the changes and response to the user
         db.session.commit()
