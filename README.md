@@ -8,13 +8,13 @@ With this application, users interact with the database using user-friendly REST
 * Roster planning: for the upcoming week by adding the required staff members into the work day
 * Booking management: adding, removing, reading and updating bookings, with confirmation emails sent out to clients. 
 * Data security: by authentication measures such as password log-in and authorization by multi-tired user privilege. 
-* Data integrity: by valiation methods so that roster and bookings can be planned effectively.  
+* Data integrity: by valiation methods so that users management and bookings can be planned effectively.  
 
 # Why do the problems need solving (Q2)  
 
 Having a well-designed and user-friendly management system is essential to the operations of any business. It streamlines customer interactions, saves time and increases customer satisfaction.  
 
-Similarly, proper staff and roster management ensure staff count is appropriate for expected work on a given day, and makes wage payment efficient.  
+Similarly, proper staff and booking management ensure work load is distributed evenly amongsy employees.
 
 Data security provided with the application is important in protecting staff and clients' information from data breaches as well as ensuring the correctness of data in the database. 
 
@@ -69,20 +69,14 @@ Key benefits of an ORM are:
 - It protects data from direct SQL injections because does not take explicit SQL queries and requires all interactions performed on OOP objects instead of  database tables.
 - It is databse-agnostic which makes switching from one database (for development) to another one (for deployment) seamless whilst keeping the code base consistent. 
 
-# Describe project models (Q8)
-There are 10 models in the project, they are: User, Client, Employee, Pet, Booking, Sizes, Animal_type, User_type, Roster, and Service.  
+# Detail any third party services in the app (Q7)
 
-1. Relationship between User model and Client model: one-and-only-one to zero-or-one relationship, where a user can be a client or not (an employee in this case) but a client can only be linked to one and only one user. User_id is a foreign key and primary key in the Client model because it is unique.
-2. Relationship between User model and Employee model: one-and-only-one to zero-or-one relationship, where a user can be an employee or not (a client in this case) but an employee can only be linked to one and only one user. User_id is a foreign key and primary key in the Employee model because it is unique.
-3. Relationship between User model and User_type model: one-and-only-one to zero-or-many relationship, where a user can only be of one and only one type (a client or an employee, but not both) and many users can be of one user_type or no users belongs to the user_type at all (all users are either clients or employees). Type_id is a foreign key in the User model, it is not nullable, and its values can have duplicates. 
-
-4. Relationship between Employee model and Roster model: zero-or-many and one-and-only-one relationship, where an employee can have multiple rosters in their id, but they can also have none roster (in the case of new employee who has just signed up). A roster can only belong to one and only one employee. Employee_id is a foreign key in the Roster model, it is not nullable, and its values can have duplicates.
-5. Relationship between Client model and Pet model: one-or-many and one-and-only-one relationship, where a client can have one or many pets, and a pet can belong to one and only one client. A client cannot be in the database without an associated pet, and vice versa. Client_id is a foreign key in the Pet model, it is not nullable, and its values can have duplicates. However, the combination of client_id and pet name has to be unique, for example Buddy is a common dog's name, therefore it can appear many times, a client whose id is 4, can only be associated one pet named Buddy.  
-6. Relationship between Pet model and Size model: one-and-only-one to zero-or-many relationship, where a pet can only be of one and only one size, but a size can be shared amongst many pets, or none at all (in the case where no pet falls into the size category). Size_id is a foreign key in the Pet model, it is not nullable, and its values can have duplicates.
-7. Relationship between Pet model and Animal_type model: one-and-only-one to zero-or-many relationship, where a pet can only be of one and only one type (dog or cat or duck), but a type can be shared amongst many pets, or none at all (in the case where no pet who is that type). Type_id is a foreign key in the Pet model, it is not nullable, and its values can have duplicates.
-8. Relationship between Pet model and Booking model: one-and-only-one to one-or-many relationship, where a pet can have one or multiple bookings, and a booking can only associate with one and only one pet. A pet cannot be in the databse without a booking. Pet_id is a foreign key in the Booking model, it is not nullable, and its values can have duplicates. 
-9.  Relationship between Booking model and Service model: one-and-only-one to zero-or-many relationship, where a booking is for one and only service, and a service can have multiple bookings or none at all associated with it. Service_id is a foreign key in the Booking model, it is not nullable, and its values can have duplicates. 
-10. Relationship between Booking model and Employee model: one-and-only-one to zero-or-many relationship, where a booking can only be booked with one and only one employee, and an employee can be booked for many bookings or none at all (in the case of new employee who has just signed up). Employee_id is a foreign key in the booking model, it is not nullable, and its values can have duplicates.
+1. Web framework: Flask, which is a microframework used to develop web applications in Python. It comes with a built-in development server and has a fast debugger. Flask 2.2.2 is used in this application.
+2. Object Relational Mapper: SQLAlchemy - facilitates the communication between Python programs and the database (PostgreSQL in this case). It translates database tables into Python objects, and converts function calls into SQL statements. In the app, Flask - SQLAlchemy is also used, because it is specifically designed to work with Flask, making SQLAlchemy compatible with a Flask app. The version of SQLAlchemy is 1.4.42 and Flask-SQLAlchemy in the app is 3.0.2.
+3. Serialization and deserialization library: Marshmallow - it is framework-agnostic, and it helps convert complex datatypes into native Python datatypes. Marshmallow version in the app is 3.18.0. Additionally, in this app, Flask - Marshmallow is used because it comes with additional features to make Marshmallow fully compatible with a Flask app, and marshmallow-sqlalchemy is another package that integrates SQLAlchemy and Marshmallow. The version of Flask-Marshmallow is 0.14.0, and marshmallow-sqlalchemy is 0.28.1
+4. PostgreSQL and Python adapter: psycopg2, its functions are to match Python data types with PostgreSQL datatypes. It also comes with thread safety feature which is desireable in heavily multi-threaded applications that make a large number of concurrent "INSERT"s or "UPDATE"s. The version of psycopg2 used in the app is 2.9.4
+5. Hashing utility: Bcrypt - its special feature is slow hashing, which prevents brute force attacks on sensitive data such as passwords. In the app, Flask-Bcrypt is used because it comes fully compatible with a Flask app. The version of Flask-Bcrypt is 1.0.1. 
+6. Authorization: JSON Web Token (JWT), provides a secure and compact tool for user authentication. Once logged in, a token will be generated and it will be included in all subsequent requests made by the client, and allows them access to routes, services and resources that are permitted with that token. In the app, the secret key method of signing is used, and Flask-JWT-Extended is the extension of choice, and its version is 4.4.4
 
 # Describe project models (Q8)
 There are 10 models in the project, they are: User, Client, Employee, Pet, Booking, Sizes, Animal_type, UserType, Roster, and Service.  
@@ -141,7 +135,6 @@ Relationship with User model: one and only one to zero or one relationship. When
 
 Relationship with Booking model: zero or many to one and only one relationship. An employee can have many bookings, or none if they just started, and a booking can only belong to one and only one employee. When an employee is deleted, employee_id field in the Booking model will be set to null. 
 
-Relationship with Roster model: zero or many to one and only one relationship. An employee can have many rosters, or none at all (if they just signed up and hasn't started), and a roster can belong to one and only one employee. When more than one employee is rostered on the same date, their rosters' id and employee_id are different, but the date are the same. When an employee is deleted, all associated rosters will also be removed, but removing a roster has no impact on the employee. 
 
 Id is both a foreign key and primary key. It is linked to the id column in the User model, hence it is unique.
 
@@ -151,19 +144,17 @@ Model declaration:
 
     user = db.relationship('User', cascade = 'all, delete')
     bookings = db.relationship('Booking', back_populates = 'employee')
-    rosters = db.relationship('Roster', back_populates = 'employee', cascade = 'all, delete')
 ```
 
 Schema declaration:
 ```py
     user = fields.Nested('UserSchema', exclude = ['employee'])
-    rosters = fields.List(fields.Nested('RosterSchema', exclude = ['employee']))
     bookings = fields.List(fields.Nested('BookingSchema', exclude = ['employee']))
 ```
 
-In the EmployeeSchema, UserSchema, RosterSchema and BookingSchema are nested to provide more information about the employee. For example, the UserSchem has f_name, l_name, and phone and BookingSchema shows all bookings made with the employee. 'Employee' field has to be excluded in all cases to avoid circular imports. RosterSchema and BookingSchema are lists because an employee can have multiple bookings and rosters.
+In the EmployeeSchema, UserSchema, RosterSchema and BookingSchema are nested to provide more information about the employee. For example, the UserSchem has f_name, l_name, and phone and BookingSchema shows all bookings made with the employee. 'Employee' field has to be excluded in all cases to avoid circular imports. BookingSchema is a list because an employee can have multiple bookings.
 
-4. UserType model:
+1. UserType model:
 
 Relationship with User model: zero or many to one and only one relationship. A user_type can be used for zero or many users, but a user can only be of one and only one type. When a user_type is removed, type_id in the User model will be set to null, but when a user is deleted, it has no impacts on user_types. 
 
@@ -295,28 +286,6 @@ Schema declaration:
 
 In the ServiceSchema, BookingSchema is nested and it is a list because there are many bookings associated with a service type. 
 
-10. Roster model:
-Relationship with Employee model: zero or many to one and only one. An employee can be assigned to many rosters (or none if they just signed up), and a roster can only be assigned to one and only one employee. If more than one employees are rostered on the same date, their rosters will have different ids and diffrent employee_ids but the same date. When an employee is deleted, all their rosters will be removed, but removing the rosters has no effect on the employee.  
-
-Employee_id is a foreign key in the Roster model, it links to the id column in the Employee model.
-
-A combination of employee_id and date are unique to avoid double rostering an employee. 
-
-Model declaration:
-
-```py
-  employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
-
-  employee = db.relationship('Employee', back_populates = 'rosters')
-```
-
-Schema declaration:
-
-```py
-  employee = fields.Nested('EmployeeSchema', only = ['user'])
-```
-
-In the RosterSchema, EmployeeSchema is nested so if a roster is called, employee information is also presented. 
 
 # Discuss the database relations (Q9)
 There are 10 relations/tables in the database.  
@@ -342,10 +311,9 @@ There are 10 relations/tables in the database.
 * When an employee is removed, their associated info in the users table will also be removed (cascade delete)
 * Relationships: 
   * employees - users:
-  * employees - rosters:
   * employees - bookings:
 
-4. User_types table - information on user types. There are 2 types: client and employee 
+1. User_types table - information on user types. There are 2 types: client and employee 
 * Attributes of the user_types table are: id (serial, primary key), name (string, not null). 
 * When a user type is deleted, all related records in users table will be removed (cascade delete).
 * Relationship: user_types - users: zero or many to one and only one relationship. 
@@ -372,7 +340,7 @@ There are 10 relations/tables in the database.
 
 8. Bookings table - includes all bookings. 
 * Attributes are: id (serial, primary key), date (date, not null), time (time, not null), status (string, not null). Booking date and time have to be in the future. Valid statuses are: pending, in progress and completed. 
-* Foreign keys are: pet_id (int, not null), employee_id (int, default is null), service_id (int, not null). A client can choose to book with a specific employee, if not specified, whoever is rostered on the day will do the job. 
+* Foreign keys are: pet_id (int, not null), employee_id (int, default is null), service_id (int, not null). A client can choose to book with a specific employee, if not specified, whoever works on the day will do the job. 
 * When a pet is deleleted, all associated bookings will also be removed (cascade delete). When an employee is deleted, the employee_id field in associated bookings will be set to null. 
 * Relationships: 
   * bookings - pets: one or many to one and only one relationship. A booking can only associate with one and only one pet, a pet can have one or many bookings. 
@@ -384,10 +352,6 @@ There are 10 relations/tables in the database.
 * Relationship: 
   * services - bookings: zero or many to one and only one relationship. A service can be booked for many bookings or none at all (example: a new service), and a booking can only be booked for one and only one service. 
 
-10. Rosters table - all roster information
-* Attributes are: id (serial, primary key), date (date, not null), employee_id (int, not null). The combination of date and employee_id is set to unique to avoid double booking an employee for the same date. 
-* Relationship:
-  * rosters - employees: zero or many to one and only one relationship. An employee can have many rosters or none at all, and each roster can only belong to one and only one employee. Example: if they are 2 employees rostered for the work day of 2022-12-01, the rosters are [roster id #1, date: 2022-12-01, employee_id: 1] and [roster id #2, date: 2022-12-01, employee_id: 2].
 
 
 # Planning and tracking of tasks (Q10)
@@ -430,5 +394,3 @@ Task #4 and Task #5: same process of Task #2 and Task #3, but on 'pets' entity
 Task #6 and Task #7: same process of Task #2 and Task #3, but on 'staff' entity
 
 Task #8 and Task #9: same process of Task #2 and Task #3, but on 'bookings' entity
-
-Task #10 and Task #11: same process of Task #2 and Task #3, but on 'rosters' entity
