@@ -13,7 +13,7 @@ def get_all_services():
     #get all records of the Service model
     stmt = db.select(Service)
     services = db.session.scalars(stmt)
-    return ServiceSchema(many=True).dump(services)
+    return ServiceSchema(many=True, exclude=['bookings']).dump(services)
 
 #Route to get one service by id
 @services_bp.route('/<int:service_id>/')
@@ -23,7 +23,7 @@ def get_one_service(service_id):
     service = db.session.scalar(stmt)
     # check if the service exists, if they do, return the ServiceSchema
     if service:
-        return ServiceSchema().dump(service)
+        return ServiceSchema(exclude=['bookings']).dump(service)
     #if service with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find service with id {service_id}'}, 404
@@ -74,7 +74,11 @@ def delete_service(service_id):
 
 #Route to update service's info
 @services_bp.route('/<int:service_id>/', methods = ['PUT', 'PATCH'])
+@jwt_required()
 def update_service(service_id):
+    #verify that the user is an admin
+    authorize_admin()
+
     #get one service whose id matches API endpoint
     stmt = db.select(Service).filter_by(id = service_id)
     service = db.session.scalar(stmt)

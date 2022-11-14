@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort, json
 from init import db
 from datetime import datetime, date as dt
 from sqlalchemy.exc import IntegrityError
-from models.booking import Booking, BookingSchema, validate_date_time, validate_date, validate_time
+from models.booking import Booking, BookingSchema, validate_date_time
 from models.user import User
 from models.pet import Pet
 from models.client import Client, ClientSchema
@@ -143,11 +143,8 @@ def update_booking(booking_id):
     # check if the booking exists, if it does, update its info
     if booking:
         try:
-            #validate input if provided in the request (not having this will cause TypeError)
-            if data.get('date'):
-                validate_date(data.get('date'))
-            if data.get('time'):
-                validate_time(data.get('time'))
+            #validate booking date and time are in the future
+            validate_date_time(data, booking.date, booking.time)
 
             #get the info from the request, if not provided, keep as it is
             booking.service_id = data.get('service_id', booking.service_id)
@@ -157,7 +154,7 @@ def update_booking(booking_id):
             booking.status = data.get('status', booking.status)
 
             #if the user wants to change pet_id in a booking
-            #if the user is an employee, go ahead and change it
+            #only an employee can do so
             if data.get('pet_id') and user.type_id == 2:
                 booking.pet_id = data.get('pet_id')
 

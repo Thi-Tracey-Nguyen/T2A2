@@ -17,12 +17,15 @@ class PetTypeSchema(ma.Schema):
 
     @validates('name')
     def validate_name(self, value):
+        #pet type name must be longer than 2 characters
         if len(value) < 2:
             raise ValidationError('Type name must be longer than 2 characters')
-            
+        
+        #get the pet type whose name matches requested name
         stmt = db.select(PetType).filter_by(name = value.capitalize())
         type_name = db.session.scalar(stmt)
 
+        #if pet type already exists, raise ValidationError
         if type_name:
             raise ValidationError('Pet type already exists')
 

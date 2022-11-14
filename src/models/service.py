@@ -23,10 +23,12 @@ class ServiceSchema(ma.Schema):
     def validate_name(self, value):
         if len(value) < 2:
             raise ValidationError('Type name must be longer than 2 characters')
-            
-        stmt = db.select(Service).filter_by(name = value.capitalize())
+        
+        #get a service whose name matches requested name
+        stmt = db.select(Service).filter_by(name = value.title())
         type_name = db.session.scalar(stmt)
 
+        #if service name already exists, raise ValidationError
         if type_name:
             raise ValidationError('Service already exists')
     

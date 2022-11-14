@@ -13,7 +13,7 @@ def get_all_pet_types():
     #get all records of the PetType model
     stmt = db.select(PetType)
     pet_types = db.session.scalars(stmt)
-    return PetTypeSchema(many=True).dump(pet_types)
+    return PetTypeSchema(many=True, exclude=['pets']).dump(pet_types)
 
 #Route to get one pet_type by id
 @pet_types_bp.route('/<int:pet_type_id>/')
@@ -23,7 +23,7 @@ def get_one_pet_type(pet_type_id):
     pet_type = db.session.scalar(stmt)
     # check if the pet_type exists, if they do, return the PetTypeSchema
     if pet_type:
-        return PetTypeSchema().dump(pet_type)
+        return PetTypeSchema(exclude=['pets']).dump(pet_type)
     #if pet_type with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find pet_type with id {pet_type_id}'}, 404
@@ -65,13 +65,14 @@ def delete_pet_type(pet_type_id):
     if pet_type:
         db.session.delete(pet_type)
         db.session.commit()
-        return {'message': 'PetType deleted successfully'}
+        return {'message': 'Pet type deleted successfully'}
     #if pet_type with the provided id does not exist, return an error message
     else:
         return {'message': f'Cannot find pet_type with id {pet_type_id}'}, 404
 
 #Route to update pet_type's info
 @pet_types_bp.route('/<int:pet_type_id>/', methods = ['PUT', 'PATCH'])
+@jwt_required()
 def update_pet_type(pet_type_id):
     #verify that the user is an admin
     authorize_admin()
