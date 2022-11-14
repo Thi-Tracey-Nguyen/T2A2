@@ -6,6 +6,8 @@ from models.booking import Booking, BookingSchema, validate_date_time, validate_
 from models.user import User
 from models.pet import Pet
 from models.client import Client, ClientSchema
+from models.employee import Employee
+from models.service import Service
 from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking, authorize_employee_or_pet_owner
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow.exceptions import ValidationError
@@ -59,40 +61,46 @@ def get_booking_by_status(status):
 @bookings_bp.route('/', methods = ['POST'])
 @jwt_required()
 def create_booking():
-    #verify that user is an employee or owner of the pet
-    authorize_employee_or_pet_owner(request.json['pet_id'])
-
     # #load request on to BookingSchema to apply validations
     data = BookingSchema().load(request.json, partial=True)
 
     #validate booking date and time have not passed
     validate_date_time(data)
-    
+
+    #get the user object from the token id
+    user_stmt = db.select(User).filter_by(id=get_jwt_identity())
+    user = db.session.scalar(user_stmt)
+
     #retrieve pet_id from data to check if it exists
     pet_stmt = db.select(Pet).filter_by(id = data['pet_id'])
     pet = db.session.scalar(pet_stmt)
 
     #create a new booking instance from the provided data
-    #if the pet_id exist and the user is employee, they can make bookings for any pets
-    booking = Booking(
-        pet_id = data['pet_id'],
-        employee_id = data.get('employee_id'),
-        date = data['date'],
-        time = data['time'],
-        service_id = data['service_id'],
-        status = request.json.get('status') #optional field -> use .get()
-    )
-    try:
-        #add the booking and commit if no conflicts
-        db.session.add(booking)
-        db.session.commit()
-        return BookingSchema().dump(booking)
+    #ifthe user is employee or the user is the owner of the pet, a booking can be made
+    if pet.client_id == get_jwt_identity() or user.type_id == 2:
+        booking = Booking(
+            pet_id = data['pet_id'],
+            employee_id = data.get('employee_id'),
+            date = data['date'],
+            time = data['time'],
+            service_id = data['service_id'],
+            status = request.json.get('status') #optional field -> use .get()
+        )
+        try:
+            #add the booking and commit if no conflicts
+            db.session.add(booking)
+            db.session.commit()
+            return BookingSchema().dump(booking)
 
-    #catch IntegrityError if the combination of
-    #pet_id, date and time already exists
-    except IntegrityError:
-        return {'message':
-        'The combination of pet\'s id, date and time already exists'}
+        #catch IntegrityError if the combination of pet_id, date and time already exists
+        except IntegrityError:
+            return {'message':
+            'The combination of pet\'s id, date and time already exists'}
+  
+    #if the pet's owner is not the user or user is not an employee, abort 401 with a message
+    elif pet.client_id != get_jwt_identity() and user.type_id != 2:
+        return {'message': f"You are not the owner of pet id {data.get('pet_id')}"}, 401
+
 
 #Route to delete a booking
 @bookings_bp.route('/<int:booking_id>/', methods = ['DELETE'])
@@ -121,14 +129,16 @@ def update_booking(booking_id):
     #verify that the user is an employee or owner of the booking
     authorize_employee_or_owner_booking(booking_id)
 
+    #get the user object from the token to check if they are an employee
+    user_stmt = db.select(User).filter_by(id=get_jwt_identity())
+    user = db.session.scalar(user_stmt)
+
     #get one booking whose id matches API endpoint
     stmt = db.select(Booking).filter_by(id = booking_id)
     booking = db.session.scalar(stmt)
     
-    data = request.json
-
     #load status from the request to the Schema for validation
-    BookingSchema().load(request.json)
+    data = BookingSchema().load(request.json)
 
     # check if the booking exists, if it does, update its info
     if booking:
@@ -140,17 +150,31 @@ def update_booking(booking_id):
                 validate_time(data.get('time'))
 
             #get the info from the request, if not provided, keep as it is
-            booking.service_id = data.get('service_id') or booking.service_id
-            booking.pet_id = data.get('pet_id') or booking.pet_id
-            booking.employee_id = data.get('employee_id') or booking.employee_id
-            booking.date = data.get('date') or booking.date
-            booking.time = data.get('time') or booking.time
-            booking.status = data.get('status') or booking.status
+            booking.service_id = data.get('service_id', booking.service_id)
+            booking.employee_id = data.get('employee_id', booking.employee_id)
+            booking.date = data.get('date', booking.date)
+            booking.time = data.get('time', booking.time)
+            booking.status = data.get('status', booking.status)
+
+            #if the user wants to change pet_id in a booking
+            #if the user is an employee, go ahead and change it
+            if data.get('pet_id') and user.type_id == 2:
+                booking.pet_id = data.get('pet_id')
+
+            #if the user is not an employee: send a message with 401 response
+            elif data.get('pet_id') and user.type_id != 2:
+                return {'message': 'Only employee can edit pet_id in a booking'}, 401
+
+            #if pet_id is not in the request, keep as it is
+            elif not data.get('pet_id'):
+                booking.pet_id = booking.pet_id
+
+
             db.session.commit() #commit the changes
             return BookingSchema().dump(booking)
         #catch IntegrityError when the updated info already exist in the database
         except IntegrityError:
-            return {'message': 'The combination of pet\'s id, date and time already exists, or invalid pet and/or service id'}
+            return {'message': 'The combination of pet\'s id, date and time already exists'}
 
     #if booking with the provided id does not exist, return an error message
     else:
@@ -171,14 +195,23 @@ def search_booking():
     user_stmt = db.select(User).filter_by(phone = args['phone'])
     user = db.session.scalar(user_stmt)
 
-    #get the client from the user
-    client_stmt = db.select(Client).filter_by(id=user.id)
-    client = db.session.scalar(client_stmt)
+    #if the user exist, means phone number exist in the database
+    if user:
+        #get the client from the user
+        client_stmt = db.select(Client).filter_by(id=user.id)
+        client = db.session.scalar(client_stmt)
 
-    if client and (user_id == client.id or token_user.type_id == 2):
-        return ClientSchema().dump(client)
-    elif not client:
+        #if the client from phone number matches the user id, 
+        #or if the user is an employee, return ClientSchema, where booking info is nested
+        if user_id == client.id or token_user.type_id == 2:
+            return ClientSchema(exclude=['password']).dump(client)
+
+        #if the client from the phone number does not match the user's id
+        #and the user is not an employee abort 401
+        elif user_id != client.id and token_user.type_id != 2:
+            abort(401)
+    #if no user can be found from the provided phone number, return a message
+    else:
         return {'message': 'Phone number not found'}, 404
-    elif user_id != client.id or token_user.type_id != 2:
-        abort(401)
+    
     

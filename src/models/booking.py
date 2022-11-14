@@ -1,6 +1,9 @@
 from init import db, ma
+from models.pet import Pet
+from models.employee import Employee
+from models.service import Service
 from datetime import datetime, date as dt
-from marshmallow import fields
+from marshmallow import fields, validates
 from marshmallow.validate import OneOf
 from marshmallow.exceptions import ValidationError
 
@@ -32,10 +35,37 @@ class BookingSchema(ma.Schema):
     employee = fields.Nested('EmployeeSchema', only = ['user'])
     status = fields.String(validate = OneOf(VALID_STATUSES))
 
+    @validates('pet_id')
+    def validate_pet(self, pet_id):
+        #get the employee object from the request to check if they exist
+        pet_stmt = db.select(Pet).filter_by(id=pet_id)
+        pet = db.session.scalar(pet_stmt)
+
+        if not pet:
+            raise ValidationError('Pet does not exist')
+
+    @validates('employee_id')
+    def validate_employee(self, employee_id):
+        #get the employee object from the request to check if they exist
+        employee_stmt = db.select(Employee).filter_by(id=employee_id)
+        employee = db.session.scalar(employee_stmt)
+
+        if not employee:
+            raise ValidationError('Employee does not exist')
+
+    @validates('service_id')
+    def validate_service(self, service_id):
+        #get the service object from the request to check if it exists
+        service_stmt = db.select(Service).filter_by(id=service_id)
+        service = db.session.scalar(service_stmt)
+
+        if not service:
+            raise ValidationError('Service does not exist')
+
 
     class Meta:
         fields = ('id', 'pet_id', 'service_id', 'status', 'service', 'date', 'time',
-        'pet', 'employee', 'date_created')
+        'pet', 'employee_id', 'employee', 'date_created')
         ordered = True
 
 

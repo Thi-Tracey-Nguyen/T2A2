@@ -104,7 +104,7 @@ def create_pet():
 
     #if the user try to create a pet with client_id other than their own
     #return error message
-    elif data['client_id'] != user.id:
+    elif user.type_id != 2 and data['client_id'] != user.id:
         return {'message': f'Client_id must be {user.id}'}, 401
 
 #Route to delete a pet
@@ -149,6 +149,27 @@ def update_pet(pet_id):
             pet.year = request.json.get('year', pet.year)
             pet.size_id = request.json.get('size_id', pet.size_id)
             pet.type_id = request.json.get('type_id', pet.type_id)
+            
+
+            #only an employee can change client_id info for a pet
+            if request.json.get('client_id'):
+
+                #get the user object using user_id from jwt token
+                user_stmt = db.select(User).filter_by(id=get_jwt_identity())
+                user = db.session.scalar(user_stmt)
+
+                #if the user is an employee, update client_id
+                if user.type_id == 2:
+                    pet.client_id = request.json.get('client_id')
+
+                #if the user is not an employee, return a message
+                else:
+                    return {'message': 'Only an employee can change client_id'}, 401
+            
+            #if client_id is not included in the request, keep as it is
+            else:
+                pet.client_id = pet.client_id
+                
             db.session.commit() #commit the changes
             return PetSchema().dump(pet)
         #catch IntegrityError when the updated info already exist in the database
