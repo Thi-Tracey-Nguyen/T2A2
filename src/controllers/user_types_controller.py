@@ -1,7 +1,5 @@
 from flask import Blueprint, request
 from init import db
-from sqlalchemy import desc
-from sqlalchemy.exc import IntegrityError
 from models.user_type import UserType, UserTypeSchema
 from controllers.auth_controller import authorize_admin, authorize_employee
 from flask_jwt_extended import jwt_required

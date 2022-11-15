@@ -1,4 +1,4 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, request
 from init import db
 from sqlalchemy.exc import IntegrityError
 from models.pet import Pet, PetSchema

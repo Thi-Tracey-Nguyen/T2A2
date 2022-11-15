@@ -1,7 +1,6 @@
 from init import db, ma, bcrypt
 from marshmallow import fields, validates
 from marshmallow.validate import And, Length, OneOf, Regexp
-from marshmallow.exceptions import ValidationError
 
 VALID_ADMIN_STATUSES = ('true', 'True', 'false', 'False')
 

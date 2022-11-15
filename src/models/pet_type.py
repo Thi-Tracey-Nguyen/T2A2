@@ -1,6 +1,5 @@
 from init import db, ma
 from marshmallow import fields, validates
-from marshmallow.validate import Range
 from marshmallow.exceptions import ValidationError
 
 

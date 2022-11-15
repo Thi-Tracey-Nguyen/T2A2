@@ -1,6 +1,5 @@
-from flask import Blueprint, request, abort, json
+from flask import Blueprint, request, abort
 from init import db
-from datetime import datetime, date as dt
 from sqlalchemy.exc import IntegrityError
 from models.booking import Booking, BookingSchema, validate_date_time
 from models.user import User
@@ -8,9 +7,9 @@ from models.pet import Pet
 from models.client import Client, ClientSchema
 from models.employee import Employee
 from models.service import Service
-from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking, authorize_employee_or_pet_owner
+from controllers.auth_controller import authorize_employee, authorize_employee_or_owner_booking
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from marshmallow.exceptions import ValidationError
+
 
 bookings_bp = Blueprint('Bookings', __name__, url_prefix = '/bookings')
 
