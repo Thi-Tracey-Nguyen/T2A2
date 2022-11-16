@@ -32,7 +32,7 @@ Drawbacks compared to other databases
 
 * Popularity: compared to MySQL, PostgreSQL is still less popular, despite recently became more widely used. As a result, there are not as many third-party tools for database management, as well as administrators with experience compared to MySQL. 
 
-### ORM (key functionalities and benefits) (Q4)
+# ORM (key functionalities and benefits) (Q4)
 ORM stands for Object Relational Mapper, which supports the interactions between an application and its database.  
 
 The chosen ORM for the project is SQLAlchemy because it is database-agnostic (which means it can be flexibily used with any databases), and it is highly compatible with Flask and Python.  
