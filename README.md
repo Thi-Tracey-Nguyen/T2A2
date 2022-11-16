@@ -1,3 +1,5 @@
+[Link to GitHub](https://github.com/Thi-Tracey-Nguyen/T2A2)
+
 # The problem (Q1)  
 
 Every business needs a reliable and efficient system to manage their clientele, workers and bookings. The purpose of this API application is to provide all-in-one management solution to a business that has the clients, staff and bookings as the core of their business model.  
