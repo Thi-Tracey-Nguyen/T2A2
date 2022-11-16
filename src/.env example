@@ -1,0 +1,2 @@
+DATABASE_URI = "" #path to the database 
+SECRET_KEY = "" #add a secret key 
