@@ -142,8 +142,9 @@ def update_booking(booking_id):
     # check if the booking exists, if it does, update its info
     if booking:
         try:
-            #validate booking date and time are in the future
-            validate_date_time(data, booking.date, booking.time)
+            #validate booking date and time are in the future if they are provided in the request
+            if data.get('date') or data.get('time'): 
+                validate_date_time(data)
 
             #get the info from the request, if not provided, keep as it is
             booking.service_id = data.get('service_id', booking.service_id)

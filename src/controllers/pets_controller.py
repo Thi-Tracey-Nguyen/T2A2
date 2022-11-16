@@ -135,6 +135,9 @@ def update_pet(pet_id):
     #verify the user is pet's owner or employee
     authorize_employee_or_pet_owner(pet_id)
 
+    #load request onto PetSchema to apply validations
+    data = PetSchema().load(request.json)
+
     #get one pet whose id matches API endpoint
     stmt = db.select(Pet).filter_by(id = pet_id)
     pet = db.session.scalar(stmt)
@@ -143,14 +146,13 @@ def update_pet(pet_id):
     if pet:
         try:
             #get the info from the request, if not provided, keep as it is
-            pet.name = request.json.get('name', pet.name).capitalize()
-            pet.client_id = request.json.get('client_id', pet.client_id)
-            pet.breed = request.json.get('breed', pet.breed).capitalize()
-            pet.year = request.json.get('year', pet.year)
-            pet.size_id = request.json.get('size_id', pet.size_id)
-            pet.type_id = request.json.get('type_id', pet.type_id)
+            pet.name = data.get('name', pet.name).capitalize()
+            pet.client_id = data.get('client_id', pet.client_id)
+            pet.breed = data.get('breed', pet.breed).capitalize()
+            pet.year = data.get('year', pet.year)
+            pet.size_id = data.get('size_id', pet.size_id)
+            pet.type_id = data.get('type_id', pet.type_id)
             
-
             #only an employee can change client_id info for a pet
             if request.json.get('client_id'):
 

@@ -1,6 +1,7 @@
 from init import db, ma 
 from marshmallow import fields
 from marshmallow.validate import And, Length, Regexp
+
 from datetime import date
 
 class User(db.Model):
@@ -23,6 +24,8 @@ class UserSchema(ma.Schema):
     type = fields.Nested('UserTypeSchema', only = ['name'])
     employee = fields.Nested('EmployeeSchema', only = ['email', 'is_admin'])
 
+    f_name = fields.String(required=True, validate=Length(min=2))
+    l_name = fields.String(required=True, validate=Length(min=2))
     phone = fields.String(required = True,
     validate = And(Length(min=6, max=6, error = 'Phone number must be 6 digit long'),
     Regexp('^[0-9]+$', error = 'Phone can only contain numbers')

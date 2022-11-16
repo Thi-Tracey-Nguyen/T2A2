@@ -68,13 +68,13 @@ class BookingSchema(ma.Schema):
         'pet', 'employee_id', 'employee', 'date_created')
         ordered = True
 
-
-def validate_date_time(input_data, existing_date, existing_time):
+#validate date and time when updating existing booking
+def validate_date_time(input_data):
     #convert booking date and time from request, opening and closing time to python date and time object
     #catch ValueError if input is invalid
     try:
-        time_obj = datetime.strptime(input_data.get('time', existing_date.strftime('%H:%M')), '%H:%M').time()
-        date_obj = datetime.strptime(input_data.get('date', existing_time.strftime('%Y-%m-%d')), '%Y-%m-%d').date()
+        time_obj = datetime.strptime(input_data.get('time'), '%H:%M').time()
+        date_obj = datetime.strptime(input_data.get('date'), '%Y-%m-%d').date()
     except ValueError:
         return {'message': "Input date and time must be in 'YYYY-MM-DD' and 'HH:MM' format"}
 
@@ -95,3 +95,4 @@ def validate_date_time(input_data, existing_date, existing_time):
     #raise ValidationError if booking time is outside opening hours
     if time_obj < open or time_obj > close:
         raise ValidationError('Booking must be from 10am to 8pm')
+
