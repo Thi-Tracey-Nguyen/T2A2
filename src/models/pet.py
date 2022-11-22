@@ -34,7 +34,7 @@ class PetSchema(ma.Schema):
     name = fields.String(required=True, validate=Length(min=2))
 
     @validates('client_id')
-    def client(self, client_id):
+    def validate_client(self, client_id):
         #get the client object from the request to check if they exist
         client_stmt = db.select(Client).filter_by(id=client_id)
         client = db.session.scalar(client_stmt)
@@ -43,7 +43,7 @@ class PetSchema(ma.Schema):
             raise ValidationError('Client id does not exist')
 
     @validates('type_id')
-    def type(self, type_id):
+    def validate_type(self, type_id):
         #get the pettype object from the request to check if they exist
         type_stmt = db.select(PetType).filter_by(id=type_id)
         type = db.session.scalar(type_stmt)
@@ -52,7 +52,7 @@ class PetSchema(ma.Schema):
             raise ValidationError('Type id does not exist')
 
     @validates('size_id')
-    def size(self, size_id):
+    def validate_size(self, size_id):
         #get the size object from the request to check if they exist
         size_stmt = db.select(Size).filter_by(id=size_id)
         size = db.session.scalar(size_stmt)
