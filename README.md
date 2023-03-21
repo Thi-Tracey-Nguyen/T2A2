@@ -1,6 +1,6 @@
 [Link to GitHub](https://github.com/Thi-Tracey-Nguyen/T2A2)
 
-# The problem (Q1)  
+# The problem  
 
 Every business needs a reliable and efficient system to manage their clientele, workers and bookings. The purpose of this API application is to provide all-in-one management solution to a business that has the clients, staff and bookings as the core of their business model.  
 
@@ -12,7 +12,7 @@ With this application, users interact with the database using user-friendly REST
 * Data security: by authentication measures such as password log-in and authorization by multi-tired user privilege. 
 * Data integrity: by valiation methods so that inputs are sanitized before being updated in the database. 
 
-# Why do the problems need solving (Q2)  
+# Why do the problems need solving  
 
 Having a well-designed and user-friendly management system is essential to the operations of any business. It streamlines customer interactions, saves time and increases customer satisfaction.  
 
@@ -20,7 +20,7 @@ Similarly, proper staff and booking management ensure work load is distributed e
 
 Data security provided with the application is important in protecting staff and clients' information from data breaches as well as ensuring the correctness of data in the database. 
 
-# Database system (Q3)  
+# Database system    
    
 Database system chosen for the application is PostgreSQL due to the following advantages:
 * Open source (free)
@@ -34,7 +34,7 @@ Drawbacks compared to other databases
 
 * Popularity: compared to MySQL, PostgreSQL is still less popular, despite recently became more widely used. As a result, there are not as many third-party tools for database management, as well as administrators with experience compared to MySQL. 
 
-# ORM (key functionalities and benefits) (Q4)
+# ORM (key functionalities and benefits)  
 ORM stands for Object Relational Mapper, which supports the interactions between an application and its database.  
 
 The chosen ORM for the project is SQLAlchemy because it is database-agnostic (which means it can be flexibily used with any databases), and it is highly compatible with Flask and Python.  
@@ -109,13 +109,13 @@ Key benefits of an ORM are:
 - It protects data from direct SQL injections because does not take explicit SQL queries and requires all interactions performed on OOP objects instead of database tables.
 - It is database-agnostic which makes switching from one database (for development) to another one (for deployment) seamless whilst keeping the code base consistent. 
 
-# Endpoints documentation (Q5)
+# Endpoints documentation  
 Endpoints documentation can be found [here](/docs/Endpoints.md)
 
-# ERD of the app (Q6)
+# ERD of the app  
 ![ERD](docs/ERD.png)
 
-# Detail any third party services in the app (Q7)
+# Detail any third party services in the app  
 
 1. Web framework: Flask, which is a microframework used to develop web applications in Python. It comes with a built-in development server and has a fast debugger. Flask 2.2.2 is used in this application.
 
@@ -129,7 +129,7 @@ Endpoints documentation can be found [here](/docs/Endpoints.md)
 
 6. Authorization: JSON Web Token (JWT), provides a secure and compact tool for user authentication. Once logged in, a token will be generated and it will be included in all subsequent requests made by the client, and allows them access to routes, services and resources that are permitted with that token. In the app, the secret key method of signing is used, and Flask-JWT-Extended is required extension, its version is 4.4.4
 
-# Describe project models (Q8)
+# Describe project models  
 There are 9 models in the project, they are: User, Client, Employee, Pet, Booking, Sizes, Animal_type, UserType,and Service.  
 
 
@@ -339,7 +339,7 @@ Schema declaration:
 In the ServiceSchema, BookingSchema is nested and it is a list because there are many bookings associated with a service type. 
 
 
-# Discuss the database relations (Q9)
+# Discuss the database relations  
 There are 9 relations/tables in the database.  
 
 1. Users table - includes all the users, they are divided into 2 types: employees and clients. 
@@ -404,7 +404,7 @@ There are 9 relations/tables in the database.
 * Relationship: 
   * services - bookings: zero or many to one and only one relationship. A service can be booked for many bookings or none at all (example: a new service), and a booking can only be booked for one and only one service. 
 
-# Planning and tracking of tasks (Q10)
+# Planning and tracking of tasks  
 
 The project is divided into three main parts:
 * Initial planning
